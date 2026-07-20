@@ -206,22 +206,34 @@
             display: none; margin-top: 14px; padding: 8px 11px; border-radius: 10px;
             background: #eef4ff; color: #1a5ed8; font-size: 12px; font-weight: 500; line-height: 1.4;
         }
+        .topbar { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+        .topbar h1 { margin:0; }
+        .lang-toggle { display:inline-flex; border:1px solid #d6dae6; border-radius:8px; overflow:hidden; }
+        .lang-btn { margin:0; width:auto; padding:5px 11px; font-size:12px; font-weight:700; background:#fff; color:#2b7cff; border:none; border-radius:0; cursor:pointer; transition:.15s ease; }
+        .lang-btn:hover { background:#eef4ff; transform:none; box-shadow:none; }
+        .lang-btn.active { background:#2b7cff; color:#fff; }
     </style>
 </head>
 
 <body>
 
-    <h1>AA Logo Watermark <span class="sub">· Photopea</span></h1>
+    <div class="topbar">
+        <h1>AA Logo Watermark <span class="sub">· Photopea</span></h1>
+        <div class="lang-toggle">
+            <button id="langTr" class="lang-btn">TR</button>
+            <button id="langEn" class="lang-btn">EN</button>
+        </div>
+    </div>
 
     <div class="pp-row" id="ppRow">
         <button class="pp-btn" id="importBtn" title="Photopea'da açık olan görseli buraya al">⤵ Görseli al</button>
     </div>
 
     <select id="dimensionSelect" class="dimension-select">
-        <option value="1080x720" selected>1080 x 720 (Yatay)</option>
-        <option value="1080x1080">1080 x 1080 (Kare)</option>
-        <option value="1080x1350">1080 x 1350 (Dikey)</option>
-        <option value="978x548">978 x 548 (Yatay)</option>
+        <option id="opt720" value="1080x720" selected>1080 x 720 (Yatay)</option>
+        <option id="opt1080" value="1080x1080">1080 x 1080 (Kare)</option>
+        <option id="opt1350" value="1080x1350">1080 x 1350 (Dikey)</option>
+        <option id="opt978" value="978x548">978 x 548 (Yatay)</option>
     </select>
 
     <div id="drop-zone">
@@ -234,13 +246,13 @@
 
     <div class="checkboxes-wrapper">
         <label class="checkbox-container">
-            <input type="checkbox" id="gifCheckbox" /> GIF olarak indir
+            <input type="checkbox" id="gifCheckbox" /> <span id="lbl_gif">GIF olarak indir</span>
         </label>
         <label class="checkbox-container">
-            <input type="checkbox" id="leftLogoCheckbox" /> Logoyu sola yerleştir
+            <input type="checkbox" id="leftLogoCheckbox" /> <span id="lbl_left">Logoyu sola yerleştir</span>
         </label>
         <label class="checkbox-container">
-            <input type="checkbox" id="openInPpCheckbox" /> Sonucu Photopea'da aç
+            <input type="checkbox" id="openInPpCheckbox" /> <span id="lbl_openpp">Sonucu Photopea'da aç</span>
         </label>
     </div>
 
@@ -318,6 +330,106 @@
 
     function setStatus(t) { statusEl.textContent = t || ""; }
 
+    /* ============================ i18n (TR / EN) ============================ */
+    const I18N = {
+      tr: {
+        import:"⤵ Görseli al",
+        import_title:"Photopea'da açık olan görseli buraya al",
+        import_title_off:"Bu buton yalnızca Photopea içinde çalışır",
+        drop:"Fotoğrafları sürükleyin, tıklayın veya ZIP yükleyin",
+        cb_gif:"GIF olarak indir",
+        cb_left:"Logoyu sola yerleştir",
+        cb_openpp:"Sonucu Photopea'da aç",
+        process:"Logo Ekle ve İndir",
+        gifhint:"🎞️ GIF karesi sırası: numaralı tutamağı (⠿) sürükleyin — 1 ilk kare, 2 ikinci…",
+        crop_apply:"Kırp",
+        crop_undo:"Geri Al",
+        b_cropped:"Kırpıldı",
+        b_uncropped:"Kırpılmadı",
+        chip_title:"Sürükleyerek sırayı değiştir",
+        d_h:"Yatay", d_sq:"Kare", d_v:"Dikey",
+        st_addfirst:"Önce fotoğraf ekleyin.",
+        st_logosaved:"Logo kaydedildi ✓",
+        p_processing:"İşleniyor...",
+        p_photos:"İşleniyor (Fotoğraflar)...",
+        p_gif:"GIF Oluşturuluyor...",
+        st_downloaded:"İndirildi ✓",
+        st_gifdl:"GIF indirildi ✓",
+        st_gifopen:"GIF Photopea'da açıldı ✓",
+        st_import_off:"Görsel alma yalnızca Photopea içinde çalışır.",
+        st_importing:"Photopea'dan görsel alınıyor...",
+        st_noresp:"Photopea'dan yanıt gelmedi. Açık bir belge var mı?",
+        st_imported:"Görsel alındı ✓",
+        logo_upload:"Logo yükle",
+        fn_proc:(a,b)=>`İşleniyor... ${a}/${b}`,
+        fn_zip:(n)=>`${n} görsel ZIP olarak indirildi ✓`,
+        fn_open:(n)=>`${n} görsel Photopea'da açıldı ✓`,
+        fn_warn:(u)=>"⚠️ Logo dosyaları bulunamadı. <b>assets/AA-Logo.png</b>, <b>assets/AA-Logo-486.png</b> ve <b>assets/AALogo.png</b> dosyalarını eklentinin barındığı klasöre koyun — ya da aşağıdan bir logo yükleyin (kalıcı olarak kaydedilir).<br><button id='uploadLogoBtn'>"+u+"</button><input type='file' id='logoFileInput' accept='image/png' style='display:none'>"
+      },
+      en: {
+        import:"⤵ Get image",
+        import_title:"Bring the currently open Photopea image here",
+        import_title_off:"This button only works inside Photopea",
+        drop:"Drag photos, click, or upload a ZIP",
+        cb_gif:"Download as GIF",
+        cb_left:"Place logo on the left",
+        cb_openpp:"Open result in Photopea",
+        process:"Add Logo & Download",
+        gifhint:"🎞️ GIF frame order: drag the numbered handle (⠿) — 1 = first frame, 2 = second…",
+        crop_apply:"Crop",
+        crop_undo:"Undo",
+        b_cropped:"Cropped",
+        b_uncropped:"Not cropped",
+        chip_title:"Drag to reorder",
+        d_h:"Horizontal", d_sq:"Square", d_v:"Vertical",
+        st_addfirst:"Add photos first.",
+        st_logosaved:"Logo saved ✓",
+        p_processing:"Processing...",
+        p_photos:"Processing (photos)...",
+        p_gif:"Creating GIF...",
+        st_downloaded:"Downloaded ✓",
+        st_gifdl:"GIF downloaded ✓",
+        st_gifopen:"GIF opened in Photopea ✓",
+        st_import_off:"Getting an image only works inside Photopea.",
+        st_importing:"Getting image from Photopea...",
+        st_noresp:"No response from Photopea. Is a document open?",
+        st_imported:"Image received ✓",
+        logo_upload:"Upload logo",
+        fn_proc:(a,b)=>`Processing... ${a}/${b}`,
+        fn_zip:(n)=>`${n} images downloaded as ZIP ✓`,
+        fn_open:(n)=>`${n} images opened in Photopea ✓`,
+        fn_warn:(u)=>"⚠️ Logo files not found. Put <b>assets/AA-Logo.png</b>, <b>assets/AA-Logo-486.png</b> and <b>assets/AALogo.png</b> in the plugin folder — or upload a logo below (saved permanently).<br><button id='uploadLogoBtn'>"+u+"</button><input type='file' id='logoFileInput' accept='image/png' style='display:none'>"
+      }
+    };
+    let LANG = 'tr';
+    try { LANG = localStorage.getItem('aa_lang') || 'tr'; } catch (e) {}
+    function t(k){ return (I18N[LANG] && I18N[LANG][k] != null) ? I18N[LANG][k] : I18N.tr[k]; }
+
+    function applyLang(){
+      const g = id => document.getElementById(id);
+      g('importBtn').textContent = t('import');
+      g('importBtn').title = inPhotopea ? t('import_title') : t('import_title_off');
+      g('drop-zone').textContent = t('drop');
+      g('lbl_gif').textContent = t('cb_gif');
+      g('lbl_left').textContent = t('cb_left');
+      g('lbl_openpp').textContent = t('cb_openpp');
+      if (!processBtn.disabled) processBtn.textContent = t('process');
+      g('gifHint').textContent = t('gifhint');
+      g('applyCropBtn').textContent = t('crop_apply');
+      g('undoCropBtn').textContent = t('crop_undo');
+      g('opt720').textContent  = "1080 x 720 ("  + t('d_h')  + ")";
+      g('opt1080').textContent = "1080 x 1080 (" + t('d_sq') + ")";
+      g('opt1350').textContent = "1080 x 1350 (" + t('d_v')  + ")";
+      g('opt978').textContent  = "978 x 548 ("   + t('d_h')  + ")";
+      g('langTr').classList.toggle('active', LANG === 'tr');
+      g('langEn').classList.toggle('active', LANG === 'en');
+      if (selectedFiles.length) renderThumbnails();
+      updateGifHint();
+    }
+    function setLang(l){ LANG = l; try { localStorage.setItem('aa_lang', l); } catch (e) {} applyLang(); }
+    document.getElementById('langTr').addEventListener('click', () => setLang('tr'));
+    document.getElementById('langEn').addEventListener('click', () => setLang('en'));
+
     function getTargetDimensions() {
         const val = dimensionSelect.value;
         const [w, h] = val.split('x').map(Number);
@@ -394,7 +506,7 @@
             // numbered drag handle — grab to reorder (sets the GIF frame order)
             const chip = document.createElement("div");
             chip.className = "order-chip";
-            chip.title = "Sürükleyerek sırayı değiştir";
+            chip.title = t('chip_title');
             chip.innerHTML = '<span class="grip">⠿</span><span>' + (index + 1) + '</span>';
 
             const removeBtn = document.createElement("div");
@@ -413,7 +525,7 @@
 
             const badge = document.createElement("div");
             badge.className = file.isCropped ? "cropped-badge" : "uncropped-badge";
-            badge.innerText = file.isCropped ? "Kırpıldı" : "Kırpılmadı";
+            badge.innerText = file.isCropped ? t('b_cropped') : t('b_uncropped');
             wrapper.appendChild(badge);
 
             thumbnailContainer.appendChild(wrapper);
@@ -669,13 +781,7 @@
     }
 
     function showLogoWarning() {
-        logoWarn.innerHTML =
-            "⚠️ Logo dosyaları bulunamadı. <b>assets/AA-Logo.png</b>, " +
-            "<b>assets/AA-Logo-486.png</b> ve <b>assets/AALogo.png</b> dosyalarını " +
-            "eklentinin barındığı klasöre koyun — ya da aşağıdan bir logo yükleyin " +
-            "(kalıcı olarak kaydedilir)." +
-            "<br><button id='uploadLogoBtn'>Logo yükle</button>" +
-            "<input type='file' id='logoFileInput' accept='image/png' style='display:none'>";
+        logoWarn.innerHTML = t('fn_warn')(t('logo_upload'));
         logoWarn.style.display = "block";
         const btn = document.getElementById('uploadLogoBtn');
         const inp = document.getElementById('logoFileInput');
@@ -687,7 +793,7 @@
             r.onload = () => {
                 try { localStorage.setItem('aa_customLogo', r.result); } catch (err) {}
                 logosReady = false;
-                ensureLogos().then(ok => { if (ok) setStatus("Logo kaydedildi ✓"); });
+                ensureLogos().then(ok => { if (ok) setStatus(t('st_logosaved')); });
             };
             r.readAsDataURL(f);
         };
@@ -695,36 +801,36 @@
 
     /* ============================ PROCESS ============================ */
     processBtn.addEventListener("click", async () => {
-        if (selectedFiles.length === 0) { setStatus("Önce fotoğraf ekleyin."); return; }
+        if (selectedFiles.length === 0) { setStatus(t('st_addfirst')); return; }
 
         const originalText = processBtn.innerText;
-        processBtn.innerText = "İşleniyor...";
+        processBtn.innerText = t('p_processing');
         processBtn.disabled = true;
         setStatus("");
 
         const ok = await ensureLogos();
-        if (!ok) { processBtn.innerText = originalText; processBtn.disabled = false; return; }
+        if (!ok) { processBtn.textContent = t('process'); processBtn.disabled = false; return; }
 
         const isGifMode = document.getElementById("gifCheckbox").checked;
         const openInPp = document.getElementById("openInPpCheckbox").checked;
 
         /* -------- GIF mode -------- */
         if (isGifMode) {
-            processBtn.innerText = "İşleniyor (Fotoğraflar)...";
+            processBtn.innerText = t('p_photos');
             const gif = new window.GIF({ workers: 2, quality: 10, workerScript: 'gif.worker.js' });
             for (let i = 0; i < selectedFiles.length; i++) {
                 const canvas = await processImage(selectedFiles[i], cropDataArray[i], true);
                 gif.addFrame(canvas, { delay: 2000 });
             }
-            processBtn.innerText = "GIF Oluşturuluyor...";
+            processBtn.innerText = t('p_gif');
             gif.on('finished', async function (blob) {
                 let firstFilename = (selectedFiles[0].name || "animasyon").split('.')[0] || "animasyon";
                 if (openInPp && inPhotopea) {
                     await openBlobInPhotopea(blob);
-                    setStatus("GIF Photopea'da açıldı ✓");
+                    setStatus(t('st_gifopen'));
                 } else {
                     downloadBlob(blob, firstFilename + ".gif");
-                    setStatus("GIF indirildi ✓");
+                    setStatus(t('st_gifdl'));
                 }
                 resetAfterProcess(originalText);
             });
@@ -742,18 +848,18 @@
                 chunkFiles.map((file, idx) => processImage(file, chunkCrops[idx]))
             );
             chunkResults.forEach(r => results.push(r));
-            setStatus(`İşleniyor... ${Math.min(i + CONCURRENCY, selectedFiles.length)}/${selectedFiles.length}`);
+            setStatus(t('fn_proc')(Math.min(i + CONCURRENCY, selectedFiles.length), selectedFiles.length));
         }
 
         if (openInPp && inPhotopea) {
             for (const r of results) { await openBlobInPhotopea(r.blob); }
-            setStatus(`${results.length} görsel Photopea'da açıldı ✓`);
+            setStatus(t('fn_open')(results.length));
         } else if (results.length === 1) {
             downloadBlob(results[0].blob, results[0].name);
-            setStatus("İndirildi ✓");
+            setStatus(t('st_downloaded'));
         } else {
             await downloadAsZip(results);
-            setStatus(`${results.length} görsel ZIP olarak indirildi ✓`);
+            setStatus(t('fn_zip')(results.length));
         }
         resetAfterProcess(originalText);
     });
@@ -765,7 +871,7 @@
         fileInput.value = "";
         gifCheckbox.checked = false;
         gifHint.style.display = "none";
-        processBtn.innerText = originalText;
+        processBtn.textContent = t('process');
         processBtn.disabled = false;
     }
 
@@ -897,20 +1003,20 @@
 
     if (!inPhotopea) {
         importBtn.disabled = true;
-        importBtn.title = "Bu buton yalnızca Photopea içinde çalışır";
+        importBtn.title = t('import_title_off');
     }
 
     importBtn.addEventListener("click", () => {
-        if (!inPhotopea) { setStatus("Görsel alma yalnızca Photopea içinde çalışır."); return; }
+        if (!inPhotopea) { setStatus(t('st_import_off')); return; }
         awaitingImport = true;
-        setStatus("Photopea'dan görsel alınıyor...");
+        setStatus(t('st_importing'));
         // saveToOE sends the active document back to us as an ArrayBuffer.
         window.parent.postMessage('app.activeDocument.saveToOE("png")', "*");
         clearTimeout(importTimer);
         importTimer = setTimeout(() => {
             if (awaitingImport) {
                 awaitingImport = false;
-                setStatus("Photopea'dan yanıt gelmedi. Açık bir belge var mı?");
+                setStatus(t('st_noresp'));
             }
         }, 6000);
     });
@@ -925,7 +1031,7 @@
             const file = new File([blob], "photopea-" + Date.now() + ".png", { type: "image/png" });
             file.isImported = true;
             await handleFiles([file]);
-            setStatus("Görsel alındı ✓");
+            setStatus(t('st_imported'));
         }
     });
 
@@ -939,6 +1045,7 @@
 
     /* Pre-load logos quietly on open so the first run is instant / warnings show early. */
     ensureLogos();
+    applyLang();
     </script>
 </body>
 
