@@ -235,7 +235,7 @@
         #cvHeadline, #cvKicker, #cvSource { width:100%; padding:10px 12px; border:2px solid #e5e7eb; border-radius:10px; font-family:'HNArabic','Inter',sans-serif; font-size:15px; direction:rtl; box-sizing:border-box; }
         #cvHeadline { resize:vertical; }
         #cvHeadline:focus, #cvKicker:focus, #cvSource:focus { outline:none; border-color:#2b7cff; }
-        #cvKickerWrap[hidden], #cvSourceWrap[hidden] { display:none; }
+        #cvKickerWrap[hidden], #cvSourceWrap[hidden], #cvStylesRow[hidden] { display:none; }
         .cv-preview-wrap { margin-top:14px; display:flex; justify-content:center; }
         #cvPreview { width:270px; height:337.5px; border-radius:10px; border:1px solid #e5e7eb; background:#111; box-shadow:0 6px 18px rgba(0,0,0,.12); }
         .cv-hint { font-size:11px; color:#8a90a0; text-align:center; margin-top:6px; }
@@ -298,6 +298,7 @@
     <div class="tabbar">
         <button id="tabW" class="tab active">Watermark</button>
         <button id="tabC" class="tab">Cards</button>
+        <button id="tabB" class="tab">Breaking</button>
     </div>
 
     <div id="tab-watermark" class="tabpane">
@@ -355,11 +356,10 @@
 
           <div class="cv-section">
             <div class="cv-sec-title" id="cvSecText">Style & text</div>
-            <div class="cv-styles">
+            <div class="cv-styles" id="cvStylesRow">
               <button class="cv-style" data-style="s01" id="cvS01">Style 01</button>
               <button class="cv-style active" data-style="s02" id="cvS02">Style 02</button>
               <button class="cv-style" data-style="s3l" id="cvS3L">3 Lines</button>
-              <button class="cv-style" data-style="brk" id="cvBRK">Breaking</button>
             </div>
             <div id="cvKickerWrap" hidden>
               <div class="cv-label" id="cvLblKicker">Top line (kicker)</div>
@@ -525,7 +525,8 @@
         st_noresp:"Photopea'dan yanıt gelmedi. Açık bir belge var mı?",
         st_imported:"Görsel alındı ✓",
         logo_upload:"Logo yükle",
-        tab_w:"Watermark", tab_c:"Kartlar",
+        tab_w:"Watermark", tab_c:"Kartlar", tab_b:"Son dakika",
+        cv_sec_brk:"Son dakika metni",
         cv_drop:"Kapak fotoğrafını sürükleyin veya tıklayın",
         cv_drop_ok:"Kapak fotoğrafı hazır ✓",
         cv_style:"Stil", cv_s02:"Stil 02", cv_s01:"Stil 01", cv_s3l:"3 Satır",
@@ -577,7 +578,8 @@
         st_noresp:"No response from Photopea. Is a document open?",
         st_imported:"Image received ✓",
         logo_upload:"Upload logo",
-        tab_w:"Watermark", tab_c:"Cards",
+        tab_w:"Watermark", tab_c:"Cards", tab_b:"Breaking",
+        cv_sec_brk:"Breaking text",
         cv_drop:"Drag a cover photo, or click",
         cv_drop_ok:"Cover photo ready ✓",
         cv_style:"Style", cv_s02:"Style 02", cv_s01:"Style 01", cv_s3l:"3 Lines",
@@ -621,12 +623,12 @@
       g('opt1080').textContent = "1080 x 1080 (" + t('d_sq') + ")";
       g('opt1350').textContent = "1080 x 1350 (" + t('d_v')  + ")";
       g('opt978').textContent  = "978 x 548 ("   + t('d_h')  + ")";
-      g('tabW').textContent = t('tab_w'); g('tabC').textContent = t('tab_c');
+      g('tabW').textContent = t('tab_w'); g('tabC').textContent = t('tab_c'); g('tabB').textContent = t('tab_b');
       g('cvImportBtn').textContent = t('import');
       g('cvImportBtn').title = inPhotopea ? t('import_title') : t('import_title_off');
       if (!cvState.img) g('cvDrop').textContent = t('cv_drop');
       g('cvLblStyle').textContent = t('cv_style');
-      g('cvS02').textContent = t('cv_s02'); g('cvS01').textContent = t('cv_s01'); g('cvS3L').textContent = t('cv_s3l'); g('cvBRK').textContent = t('cv_brk');
+      g('cvS02').textContent = t('cv_s02'); g('cvS01').textContent = t('cv_s01'); g('cvS3L').textContent = t('cv_s3l');
       g('cvLblKicker').textContent = t('cv_kicker'); g('cvLblSource').textContent = t('cv_source'); g('cvLblHeadline').textContent = t('cv_headline');
       g('cvLblOpen').textContent = t('cv_open'); g('cvHint').textContent = t('cv_hint');
       g('cvExportBtn').textContent = t('cv_export');
@@ -634,7 +636,7 @@
       g('cvBoldHint').textContent = t('cv_bold_hint');
       g('cvCropApply').textContent = t('cv_crop');
       g('cvLblGrad').textContent = t('cv_grad'); g('cvLblOpacity').textContent = t('cv_darkness'); g('cvLblReach').textContent = t('cv_reach');
-      g('cvSecPhoto').textContent = t('cv_sec_photo'); g('cvSecText').textContent = t('cv_sec_text'); g('cvRecropSq').textContent = t('cv_recrop'); g('cvRecropPt').textContent = t('cv_recrop');
+      g('cvSecPhoto').textContent = t('cv_sec_photo'); g('cvSecText').textContent = (document.getElementById('tabB') && document.getElementById('tabB').classList.contains('active')) ? t('cv_sec_brk') : t('cv_sec_text'); g('cvRecropSq').textContent = t('cv_recrop'); g('cvRecropPt').textContent = t('cv_recrop');
       if (typeof cvUpdateWordCount === 'function') cvUpdateWordCount();
       if (typeof cvRender === 'function' && !document.getElementById('tab-cover').hidden) cvRender();
       g('langTr').classList.toggle('active', LANG === 'tr');
@@ -1290,18 +1292,40 @@
     };
     function cvSetStatus(msg){ cvStatusEl.textContent = msg || ''; }
 
-    // tabs
+    // tabs (Watermark / Cards / Breaking) — Cards & Breaking share the cover engine
     const tabW = document.getElementById('tabW');
     const tabC = document.getElementById('tabC');
+    const tabB = document.getElementById('tabB');
+    let cvLastCardStyle = 's02';
+    function cvSetActiveStyleBtn(){ document.querySelectorAll('.cv-style').forEach(x => x.classList.toggle('active', x.dataset.style === cvState.style)); }
     function showTab(which){
+        const cover = (which === 'c' || which === 'b');
         document.getElementById('tab-watermark').hidden = (which !== 'w');
-        document.getElementById('tab-cover').hidden = (which !== 'c');
+        document.getElementById('tab-cover').hidden = !cover;
         tabW.classList.toggle('active', which === 'w');
         tabC.classList.toggle('active', which === 'c');
-        if (which === 'c') cvEnsureFontsThenRender();
+        tabB.classList.toggle('active', which === 'b');
+        if (which === 'c'){
+            cvState.style = cvLastCardStyle;
+            document.getElementById('cvStylesRow').hidden = false;
+            document.getElementById('cvSecText').textContent = t('cv_sec_text');
+            cvKickerWrap.hidden = (cvState.style !== 's3l');
+            cvSourceWrap.hidden = true;
+            cvSetActiveStyleBtn();
+            document.getElementById('cvExportBtn').disabled = !cvState.img;
+        } else if (which === 'b'){
+            cvState.style = 'brk';
+            document.getElementById('cvStylesRow').hidden = true;
+            document.getElementById('cvSecText').textContent = t('cv_sec_brk');
+            cvKickerWrap.hidden = true;
+            cvSourceWrap.hidden = false;
+            document.getElementById('cvExportBtn').disabled = false;
+        }
+        if (cover) cvEnsureFontsThenRender();
     }
     tabW.addEventListener('click', () => showTab('w'));
     tabC.addEventListener('click', () => showTab('c'));
+    tabB.addEventListener('click', () => showTab('b'));
 
     let cvFontsReady = false;
     function cvEnsureFontsThenRender(){
@@ -1316,12 +1340,10 @@
     // style buttons + inputs
     document.querySelectorAll('.cv-style').forEach(b => {
         b.addEventListener('click', () => {
-            document.querySelectorAll('.cv-style').forEach(x => x.classList.remove('active'));
-            b.classList.add('active');
-            cvState.style = b.dataset.style;
+            cvState.style = b.dataset.style; cvLastCardStyle = b.dataset.style;
+            cvSetActiveStyleBtn();
             cvKickerWrap.hidden = (cvState.style !== 's3l');
-            cvSourceWrap.hidden = (cvState.style !== 'brk');
-            document.getElementById('cvExportBtn').disabled = !(cvState.img || cvState.style === 'brk');
+            document.getElementById('cvExportBtn').disabled = !cvState.img;
             cvRenderAll();
         });
     });
