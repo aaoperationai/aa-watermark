@@ -386,7 +386,7 @@
 
           <div class="cv-section">
             <label class="checkbox-container"><input type="checkbox" id="cvOpenPp"> <span id="cvLblOpen">Open result in Photopea</span></label>
-            <button id="cvExportBtn" disabled>Export cover (1080×1350)</button>
+            <button id="cvExportBtn" disabled>Export covers (X + Instagram)</button>
             <div id="cvStatus" style="margin-top:10px;font-size:12px;color:#6b7280;text-align:center;min-height:16px;"></div>
           </div>
 
@@ -531,7 +531,7 @@
         cv_style:"Stil", cv_s02:"Stil 02", cv_s01:"Stil 01", cv_s3l:"3 Satır",
         cv_kicker:"Üst satır", cv_headline:"Başlık",
         cv_open:"Sonucu Photopea'da aç", cv_hint:"Canlı önizleme",
-        cv_export:"Kapağı indir (1080×1350)",
+        cv_export:"Kapakları indir (X + Instagram)",
         cv_needphoto:"Önce kapak fotoğrafı ekleyin.",
         cv_downloaded:"2 kapak indirildi ✓",
         cv_opened:"2 kapak Photopea'da açıldı ✓",
@@ -583,7 +583,7 @@
         cv_style:"Style", cv_s02:"Style 02", cv_s01:"Style 01", cv_s3l:"3 Lines",
         cv_kicker:"Top line (kicker)", cv_headline:"Headline",
         cv_open:"Open result in Photopea", cv_hint:"Live preview",
-        cv_export:"Export cover (1080×1350)",
+        cv_export:"Export covers (X + Instagram)",
         cv_needphoto:"Add a cover photo first.",
         cv_downloaded:"2 covers downloaded ✓",
         cv_opened:"2 covers opened in Photopea ✓",
@@ -1321,6 +1321,7 @@
             cvState.style = b.dataset.style;
             cvKickerWrap.hidden = (cvState.style !== 's3l');
             cvSourceWrap.hidden = (cvState.style !== 'brk');
+            document.getElementById('cvExportBtn').disabled = !(cvState.img || cvState.style === 'brk');
             cvRenderAll();
         });
     });
@@ -1414,10 +1415,17 @@
 
     // gradient
     const CV_GRAD_SHAPE = [[0,1],[0.20,0.98],[0.40,0.82],[0.60,0.48],[0.80,0.06],[0.92,0]];
+    const CV_GRAD_BAND = [[0,0.08],[0.20,0.5],[0.36,0.92],[0.5,1.0],[0.64,0.92],[0.80,0.5],[1,0.08]];
     function cvGradient(dir, peak, reach){
-        const g = cvCtx.createLinearGradient(0, dir === 'top' ? 0 : CVH, 0, dir === 'top' ? CVH : 0);
-        CV_GRAD_SHAPE.forEach(([f, a]) => { g.addColorStop(Math.min(1, f / 0.92 * reach), 'rgba(0,0,0,' + (a * peak).toFixed(3) + ')'); });
-        if (reach < 0.999) g.addColorStop(1, 'rgba(0,0,0,0)');
+        let g;
+        if (dir === 'center'){
+            g = cvCtx.createLinearGradient(0, 0, 0, CVH);
+            CV_GRAD_BAND.forEach(([f, a]) => g.addColorStop(f, 'rgba(0,0,0,' + (a * peak).toFixed(3) + ')'));
+        } else {
+            g = cvCtx.createLinearGradient(0, dir === 'top' ? 0 : CVH, 0, dir === 'top' ? CVH : 0);
+            CV_GRAD_SHAPE.forEach(([f, a]) => { g.addColorStop(Math.min(1, f / 0.92 * reach), 'rgba(0,0,0,' + (a * peak).toFixed(3) + ')'); });
+            if (reach < 0.999) g.addColorStop(1, 'rgba(0,0,0,0)');
+        }
         cvCtx.fillStyle = g; cvCtx.fillRect(0, 0, CVW, CVH);
     }
     function cvGradParams(){ return { op: parseInt(document.getElementById('cvOpacity').value, 10) / 100, reach: parseInt(document.getElementById('cvReach').value, 10) / 100 }; }
@@ -1524,16 +1532,32 @@
         el.style.color = (n >= lo && n <= hi) ? '#059669' : '#d97706';
     }
 
+    function cvBreakingBg(){
+        cvCtx.fillStyle = '#C82626'; cvCtx.fillRect(0, 0, CVW, CVH);
+        if (cvLogo.complete && cvLogo.naturalWidth) {
+            const sz = CVW * 0.95, lx = (CVW - sz) / 2 - CVW * 0.12, ly = (CVH - sz) / 2;
+            const mono = document.createElement('canvas'); mono.width = CVW; mono.height = CVH;
+            const mctx = mono.getContext('2d');
+            mctx.drawImage(cvLogo, lx, ly, sz, sz);
+            mctx.globalCompositeOperation = 'source-in';
+            mctx.fillStyle = '#C21C1C'; mctx.fillRect(0, 0, CVW, CVH);
+            cvCtx.save(); cvCtx.globalAlpha = 0.55; cvCtx.drawImage(mono, 0, 0); cvCtx.restore();
+        }
+    }
+
     // Draw the full card into one size
     function cvRenderInto(size){
         cvCtx = size.canvas.getContext('2d'); CVW = size.W; CVH = size.H;
         const cx = CVW / 2, boxW = 880;
+        const isSquare = (CVH <= 1200);
         cvCtx.clearRect(0, 0, CVW, CVH);
         cvCtx.fillStyle = '#111'; cvCtx.fillRect(0, 0, CVW, CVH);
         const demo = (!cvState.img && cvHeadlineEl.value.trim() === '' && (cvState.style !== 's3l' || cvKickerEl.value.trim() === '') && (cvState.style !== 'brk' || cvSourceEl.value.trim() === ''));
-        if (cvState.img) cvDrawCover(cvState.img, cvState.crop[size.key]); else cvPlaceholderBg();
-        const gp = cvGradParams();
-        cvGradient((cvState.style === 's01' || cvState.style === 'brk') ? 'bottom' : 'top', gp.op, gp.reach);
+        const brkNoPhoto = (cvState.style === 'brk' && !cvState.img);
+        if (cvState.img) cvDrawCover(cvState.img, cvState.crop[size.key]);
+        else if (brkNoPhoto) cvBreakingBg();
+        else cvPlaceholderBg();
+        if (!brkNoPhoto) { const gp = cvGradParams(); const gdir = (cvState.style === 's01' || cvState.style === 'brk') ? 'bottom' : (isSquare ? 'center' : 'top'); cvGradient(gdir, gp.op, gp.reach); }
 
         const allBold = document.getElementById('cvAllBold').checked;
         const headSrc = demo ? (cvState.style === 's3l' ? CV_SAMPLE.title3l : (cvState.style === 'brk' ? CV_SAMPLE.brk : CV_SAMPLE.head)) : cvHeadlineEl.value;
@@ -1542,7 +1566,9 @@
 
         if (cvState.style === 's02'){
             const f = cvLayoutHeadline(tokens, boxW, 96, 40, allBold);
-            const y0 = 150 + f.fs; let lastW = 0;
+            const nL2 = Math.max(f.lines.length, 1);
+            const y0 = isSquare ? (Math.round((CVH - (f.fs + (nL2 - 1) * f.lh + 30)) / 2) + f.fs) : (150 + f.fs);
+            let lastW = 0;
             f.lines.forEach((ln, i) => { lastW = cvDrawLine(ln, cx, y0 + i * f.lh, f.fs, allBold); });
             const lastY = y0 + (Math.max(f.lines.length, 1) - 1) * f.lh;
             if (f.lines.length) cvAccent(cx, lastY + 22, Math.min(Math.max(lastW, 140), 620));
@@ -1554,10 +1580,14 @@
             if (f.lines.length) cvAccent(cx, firstY - f.fs - 20, Math.min(Math.max(firstW, 140), 460));
         } else if (cvState.style === 's3l'){
             const kf = cvWrapFit(kickSrc, 760, 60, 28, '300', 1);
-            const ky = 140 + kf.fs; let kw = 0;
+            const tfPre = cvLayoutHeadline(tokens, boxW, 84, 40, allBold);
+            const nT = Math.max(tfPre.lines.length, 1);
+            const blockH3 = kf.fs + 56 + tfPre.fs + (nT - 1) * tfPre.lh;
+            const baseTop = isSquare ? Math.round((CVH - blockH3) / 2) : 140;
+            const ky = baseTop + kf.fs; let kw = 0;
             if (kf.lines[0]) { cvCtx.font = '300 ' + kf.fs + 'px HNArabic'; cvCtx.fillStyle = '#fff'; cvCtx.textAlign = 'center'; cvCtx.direction = 'rtl'; cvCtx.textBaseline = 'alphabetic'; cvCtx.fillText(kf.lines[0], cx, ky); kw = cvCtx.measureText(kf.lines[0]).width; }
             if (kf.lines[0]) cvAccent(cx, ky + 18, Math.min(Math.max(kw, 140), 480));
-            const tf = cvLayoutHeadline(tokens, boxW, 84, 40, allBold);
+            const tf = tfPre;
             const ty = ky + 56 + tf.fs;
             tf.lines.forEach((ln, i) => { cvDrawLine(ln, cx, ty + i * tf.lh, tf.fs, allBold); });
         } else {  // brk
@@ -1596,7 +1626,7 @@
 
     // export BOTH sizes as two separate PNG files (or open both in Photopea)
     function cvExport(openInPp){
-        if (!cvState.img) { cvSetStatus(t('cv_needphoto')); return; }
+        if (!cvState.img && cvState.style !== 'brk') { cvSetStatus(t('cv_needphoto')); return; }
         cvRenderAll();
         const stamp = Date.now();
         cvSizes.forEach((size, idx) => {
