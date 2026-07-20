@@ -602,7 +602,7 @@
         cv_downloaded:"2 kart indirildi ✓",
         cv_opened:"2 kart Photopea'da açıldı ✓",
         cv_allbold:"Tümü kalın",
-        cv_bold_hint:"İpucu: bir kelimeyi *yıldız* içine alarak kalın yap",
+        cv_bold_hint:"İpucu: *yıldız* = kalın, _alt çizgi_ = vurgu çizgisi",
         cv_words:(n,lo,hi)=>`Kelime: ${n} (${lo}–${hi} önerilir)`,
         cv_sample:"Örnek",
         cv_crop:"Kırp",
@@ -658,7 +658,7 @@
         cv_downloaded:"2 cards downloaded ✓",
         cv_opened:"2 cards opened in Photopea ✓",
         cv_allbold:"All bold",
-        cv_bold_hint:"Tip: wrap a word in *stars* to bold it",
+        cv_bold_hint:"Tip: *stars* = bold, _underscore_ = accent under word",
         cv_words:(n,lo,hi)=>`Words: ${n} (${lo}–${hi} recommended)`,
         cv_sample:"Sample",
         cv_crop:"Crop",
@@ -1354,7 +1354,7 @@
     const cvFileInput = document.getElementById('cvFileInput');
     const cvState = { style:'s02', img:null, imgURL:null, crop:{ sq:null, pt:null } };
     const CV_SAMPLE = {
-        head:     "لا سقف يحميهم.. الشتاء يضاعف معاناة نازحي غزة",
+        head:     "لا سقف يحميهم.. الشتاء يضاعف معاناة _نازحي غزة_",
         title3l:  "الشتاء يضاعف معاناة نازحي غزة",
         kicker:   "لا سقف يحميهم..",
         brk:      "ارتفاع عدد الضحايا جراء الاستهداف الإسرائيلي المتواصل لمنتظري المساعدات شمالي القطاع",
@@ -1576,9 +1576,19 @@
         return { fs: minFont, lines: build(minFont), lh: Math.round(minFont * 1.34) };
     }
     function cvAccent(cx, y, w){ cvCtx.fillStyle = '#B1876A'; cvCtx.fillRect(Math.round(cx - w / 2), Math.round(y), Math.round(w), 8); }
+    function cvAccentSpan(x0, x1, y){ cvCtx.fillStyle = '#B1876A'; cvCtx.fillRect(Math.round(x0), Math.round(y), Math.round(x1 - x0), 8); }
     function cvParseTokens(text){
         const tokens = [];
-        (text || '').split('*').forEach((seg, idx) => { const bold = (idx % 2 === 1); seg.trim().split(/\s+/).filter(Boolean).forEach(w => tokens.push({ text: w, bold })); });
+        let bold = false, accent = false, cur = '';
+        const flush = () => { cur.split(/\s+/).filter(Boolean).forEach(w => tokens.push({ text: w, bold, accent })); cur = ''; };
+        const s = text || '';
+        for (let i = 0; i < s.length; i++){
+            const ch = s[i];
+            if (ch === '*'){ flush(); bold = !bold; }
+            else if (ch === '_'){ flush(); accent = !accent; }
+            else cur += ch;
+        }
+        flush();
         return tokens;
     }
     function cvWordWidth(tok, fs, allBold){ cvCtx.font = ((tok.bold || allBold) ? '700' : '400') + ' ' + fs + 'px HNArabic'; return cvCtx.measureText(tok.text).width; }
@@ -1599,13 +1609,18 @@
         return { fs, lines, lh: Math.round(fs * 1.34) };
     }
     function cvDrawLine(toks, cx, y, fs, allBold){
-        if (!toks.length) return 0;
+        if (!toks.length) return { total: 0, accL: null, accR: null };
         const widths = toks.map(t => cvWordWidth(t, fs, allBold)); const sp = cvSpaceWidth(fs);
         const total = widths.reduce((a, b) => a + b, 0) + sp * (toks.length - 1);
         cvCtx.textAlign = 'right'; cvCtx.direction = 'rtl'; cvCtx.textBaseline = 'alphabetic'; cvCtx.fillStyle = '#fff';
-        let x = cx + total / 2;
-        toks.forEach((t, i) => { cvCtx.font = ((t.bold || allBold) ? '700' : '400') + ' ' + fs + 'px HNArabic'; cvCtx.fillText(t.text, x, y); x -= widths[i] + sp; });
-        return total;
+        let x = cx + total / 2, accL = null, accR = null;
+        toks.forEach((t, i) => {
+            cvCtx.font = ((t.bold || allBold) ? '700' : '400') + ' ' + fs + 'px HNArabic';
+            cvCtx.fillText(t.text, x, y);
+            if (t.accent){ const l = x - widths[i], r = x; if (accL === null || l < accL) accL = l; if (accR === null || r > accR) accR = r; }
+            x -= widths[i] + sp;
+        });
+        return { total, accL, accR };
     }
     function cvWrapTokens(tokens, boxW, maxFont, minFont, allBold, maxLines){
         const build = (fs) => { const lines = []; let cur = []; tokens.forEach(tk => { const test = cur.concat(tk); if (!cur.length || cvLineWidth(test, fs, allBold) <= boxW) cur = test; else { lines.push(cur); cur = [tk]; } }); if (cur.length) lines.push(cur); return lines; };
@@ -1679,16 +1694,26 @@
             const f = cvLayoutHeadline(tokens, boxW, 96, 40, allBold);
             const nL2 = Math.max(f.lines.length, 1);
             const y0 = isSquare ? (Math.round((CVH - (f.fs + (nL2 - 1) * f.lh + 30)) / 2) + f.fs) : (150 + f.fs);
-            let lastW = 0;
-            f.lines.forEach((ln, i) => { lastW = cvDrawLine(ln, cx, y0 + i * f.lh, f.fs, allBold); });
-            const lastY = y0 + (Math.max(f.lines.length, 1) - 1) * f.lh;
-            if (f.lines.length) cvAccent(cx, lastY + 22, Math.min(Math.max(lastW, 140), 620));
+            let accentDrawn = false, lastW = 0, lastY = y0;
+            f.lines.forEach((ln, i) => {
+                const yy = y0 + i * f.lh;
+                const r = cvDrawLine(ln, cx, yy, f.fs, allBold);
+                lastW = r.total; lastY = yy;
+                if (r.accL !== null){ cvAccentSpan(r.accL, r.accR, yy + Math.round(f.fs * 0.24)); accentDrawn = true; }
+            });
+            if (!accentDrawn && f.lines.length) cvAccent(cx, lastY + 22, Math.min(Math.max(lastW, 140), 620));
         } else if (cvState.style === 's01'){
             const f = cvLayoutHeadline(tokens, boxW, 96, 40, allBold);
             const nL = Math.max(f.lines.length, 1);
-            const firstY = (CVH - 350) - (nL - 1) * f.lh; let firstW = 0;
-            f.lines.forEach((ln, i) => { const w = cvDrawLine(ln, cx, firstY + i * f.lh, f.fs, allBold); if (i === 0) firstW = w; });
-            if (f.lines.length) cvAccent(cx, firstY - f.fs - 20, Math.min(Math.max(firstW, 140), 460));
+            const firstY = (CVH - 350) - (nL - 1) * f.lh;
+            let accentDrawn = false, firstW = 0;
+            f.lines.forEach((ln, i) => {
+                const yy = firstY + i * f.lh;
+                const r = cvDrawLine(ln, cx, yy, f.fs, allBold);
+                if (i === 0) firstW = r.total;
+                if (r.accL !== null){ cvAccentSpan(r.accL, r.accR, yy + Math.round(f.fs * 0.24)); accentDrawn = true; }
+            });
+            if (!accentDrawn && f.lines.length) cvAccent(cx, firstY - f.fs - 20, Math.min(Math.max(firstW, 140), 460));
         } else if (cvState.style === 's3l'){
             const kf = cvWrapFit(kickSrc, 760, 60, 28, '300', 1);
             const tfPre = cvLayoutHeadline(tokens, boxW, 84, 40, allBold);
