@@ -251,6 +251,30 @@
         .cv-slim { font-size:12px; color:#556; font-weight:600; min-width:64px; }
         .cv-slider-row input[type=range] { flex:1; accent-color:#2b7cff; margin:0; cursor:pointer; }
         .cv-slider-row .cv-slim:last-child { min-width:42px; text-align:right; color:#2b7cff; }
+        .cv-grid { display:block; max-width:980px; margin:0 auto; }
+        .cv-section { background:#fff; border:1px solid #e9ecf3; border-radius:12px; padding:14px; margin-bottom:14px; }
+        .cv-sec-title { font-size:11px; font-weight:700; letter-spacing:.05em; text-transform:uppercase; color:#9aa1b1; margin-bottom:10px; }
+        .cv-inline-row { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:12px; flex-wrap:wrap; }
+        .cv-inline-row .cv-hint { margin:0; }
+        .cv-mini-btn { margin-top:12px; width:auto; padding:8px 14px; font-size:12px; font-weight:600; background:#eef4ff; color:#2b7cff; border:1px solid #cfe0ff; border-radius:9px; box-shadow:none; }
+        .cv-mini-btn:hover { background:#e0ecff; transform:none; box-shadow:none; }
+        .cv-mini-btn:disabled { opacity:.4; cursor:not-allowed; }
+        #cvExportBtn:disabled { filter:grayscale(.35); opacity:.5; cursor:not-allowed; box-shadow:none; transform:none; }
+        .pp-btn:disabled { opacity:.4; cursor:not-allowed; }
+        .cv-preview-sticky { display:flex; flex-direction:column; align-items:center; }
+        #cvPreview { width:100%; max-width:340px; aspect-ratio:1080/1350; height:auto; border-radius:10px; border:1px solid #e5e7eb; background:#111; box-shadow:0 6px 18px rgba(0,0,0,.12); cursor:pointer; }
+        @media (min-width:760px){
+            .cv-grid { display:grid; grid-template-columns: minmax(0,1fr) 380px; gap:20px; align-items:start; max-width:1000px; }
+            .cv-right { position:sticky; top:8px; }
+            #cvPreview { max-width:380px; }
+        }
+        #cropBox, #cvCropBox { touch-action: none; }
+        @media (max-width:600px){
+            #applyCropBtn, #undoCropBtn, #cvCropApply { padding:13px 0; font-size:15px; }
+            .preview-btn { width:52px; height:52px; font-size:20px; }
+            #closeModalBtn, #cvCropClose { width:40px; height:40px; font-size:18px; }
+            .crop-toolbar { gap:10px; }
+        }
     </style>
 </head>
 
@@ -312,49 +336,58 @@
     </div><!-- /tab-watermark -->
 
     <div id="tab-cover" class="tabpane" hidden>
+      <div class="cv-grid">
+        <div class="cv-left">
 
-        <div class="pp-row">
-            <button class="pp-btn" id="cvImportBtn">⤵ Get image</button>
-        </div>
+          <div class="cv-section">
+            <div class="cv-sec-title" id="cvSecPhoto">Photo</div>
+            <div class="pp-row"><button class="pp-btn" id="cvImportBtn">⤵ Get image</button></div>
+            <div id="cvDrop">Drag a cover photo, or click</div>
+            <input type="file" id="cvFileInput" accept="image/*" style="display:none">
+            <button id="cvRecropBtn" class="cv-mini-btn" disabled>Re-crop</button>
+          </div>
 
-        <div id="cvDrop">Drag a cover photo, or click</div>
-        <input type="file" id="cvFileInput" accept="image/*" style="display:none">
+          <div class="cv-section">
+            <div class="cv-sec-title" id="cvSecText">Style & text</div>
+            <div class="cv-styles">
+              <button class="cv-style active" data-style="s02" id="cvS02">Style 02</button>
+              <button class="cv-style" data-style="s01" id="cvS01">Style 01</button>
+              <button class="cv-style" data-style="s3l" id="cvS3L">3 Lines</button>
+            </div>
+            <div id="cvKickerWrap" hidden>
+              <div class="cv-label" id="cvLblKicker">Top line (kicker)</div>
+              <input type="text" id="cvKicker" placeholder="لا سقف يحميهم..">
+            </div>
+            <div class="cv-label" id="cvLblHeadline">Headline</div>
+            <textarea id="cvHeadline" rows="2" placeholder="اكتب عنوان الغلاف هنا"></textarea>
+            <div id="cvWordCount" class="cv-hint" style="text-align:right;margin-top:6px;"></div>
+            <div class="cv-inline-row">
+              <label class="checkbox-container"><input type="checkbox" id="cvAllBold" checked> <span id="cvLblAllBold">All bold</span></label>
+              <span class="cv-hint" id="cvBoldHint">Tip: wrap a word in *stars* to bold it</span>
+            </div>
+          </div>
 
-        <div class="cv-label" id="cvLblStyle">Style</div>
-        <div class="cv-styles">
-            <button class="cv-style active" data-style="s02" id="cvS02">Style 02</button>
-            <button class="cv-style" data-style="s01" id="cvS01">Style 01</button>
-            <button class="cv-style" data-style="s3l" id="cvS3L">3 Lines</button>
-        </div>
+          <div class="cv-section">
+            <div class="cv-sec-title" id="cvLblGrad">Gradient</div>
+            <div class="cv-slider-row"><span class="cv-slim" id="cvLblOpacity">Darkness</span><input type="range" id="cvOpacity" min="20" max="100" value="72"><span class="cv-slim" id="cvOpacityVal">72%</span></div>
+            <div class="cv-slider-row"><span class="cv-slim" id="cvLblReach">Reach</span><input type="range" id="cvReach" min="30" max="100" value="90"><span class="cv-slim" id="cvReachVal">90%</span></div>
+          </div>
 
-        <div id="cvKickerWrap" hidden>
-            <div class="cv-label" id="cvLblKicker">Top line (kicker)</div>
-            <input type="text" id="cvKicker" placeholder="لا سقف يحميهم..">
-        </div>
-
-        <div class="cv-label" id="cvLblHeadline">Headline</div>
-        <textarea id="cvHeadline" rows="2" placeholder="اكتب عنوان الغلاف هنا"></textarea>
-        <div id="cvWordCount" class="cv-hint" style="text-align:right;margin-top:6px;"></div>
-
-        <div class="checkboxes-wrapper">
-            <label class="checkbox-container"><input type="checkbox" id="cvAllBold" checked> <span id="cvLblAllBold">All bold</span></label>
-        </div>
-        <div class="cv-hint" id="cvBoldHint" style="text-align:right;">Tip: wrap a word in *stars* to bold it</div>
-
-        <div class="cv-label" id="cvLblGrad">Gradient</div>
-        <div class="cv-slider-row"><span class="cv-slim" id="cvLblOpacity">Darkness</span><input type="range" id="cvOpacity" min="20" max="100" value="72"><span class="cv-slim" id="cvOpacityVal">72%</span></div>
-        <div class="cv-slider-row"><span class="cv-slim" id="cvLblReach">Reach</span><input type="range" id="cvReach" min="30" max="100" value="90"><span class="cv-slim" id="cvReachVal">90%</span></div>
-
-        <div class="checkboxes-wrapper">
+          <div class="cv-section">
             <label class="checkbox-container"><input type="checkbox" id="cvOpenPp"> <span id="cvLblOpen">Open result in Photopea</span></label>
+            <button id="cvExportBtn" disabled>Export cover (1080×1350)</button>
+            <div id="cvStatus" style="margin-top:10px;font-size:12px;color:#6b7280;text-align:center;min-height:16px;"></div>
+          </div>
+
         </div>
 
-        <div class="cv-preview-wrap"><canvas id="cvPreview" width="1080" height="1350"></canvas></div>
-        <div class="cv-hint" id="cvHint">Live preview</div>
-
-        <button id="cvExportBtn">Export cover (1080×1350)</button>
-        <div id="cvStatus" style="margin-top:10px;font-size:12px;color:#6b7280;text-align:center;min-height:16px;"></div>
-
+        <div class="cv-right">
+          <div class="cv-preview-sticky">
+            <canvas id="cvPreview" width="1080" height="1350"></canvas>
+            <div class="cv-hint" id="cvHint" style="margin-top:8px;">Live preview</div>
+          </div>
+        </div>
+      </div>
     </div><!-- /tab-cover -->
 
     <div id="previewModal">
@@ -477,7 +510,7 @@
         cv_drop_ok:"Kapak fotoğrafı hazır ✓",
         cv_style:"Stil", cv_s02:"Stil 02", cv_s01:"Stil 01", cv_s3l:"3 Satır",
         cv_kicker:"Üst satır", cv_headline:"Başlık",
-        cv_open:"Sonucu Photopea'da aç", cv_hint:"Canlı önizleme · yeniden kırpmak için tıkla",
+        cv_open:"Sonucu Photopea'da aç", cv_hint:"Canlı önizleme",
         cv_export:"Kapağı indir (1080×1350)",
         cv_needphoto:"Önce kapak fotoğrafı ekleyin.",
         cv_downloaded:"Kapak indirildi ✓",
@@ -488,6 +521,7 @@
         cv_sample:"Örnek",
         cv_crop:"Kırp",
         cv_grad:"Gradyan", cv_darkness:"Koyuluk", cv_reach:"Uzunluk",
+        cv_sec_photo:"Fotoğraf", cv_sec_text:"Stil ve metin", cv_recrop:"Yeniden kırp",
         fn_proc:(a,b)=>`İşleniyor... ${a}/${b}`,
         fn_zip:(n)=>`${n} görsel ZIP olarak indirildi ✓`,
         fn_open:(n)=>`${n} görsel Photopea'da açıldı ✓`,
@@ -527,7 +561,7 @@
         cv_drop_ok:"Cover photo ready ✓",
         cv_style:"Style", cv_s02:"Style 02", cv_s01:"Style 01", cv_s3l:"3 Lines",
         cv_kicker:"Top line (kicker)", cv_headline:"Headline",
-        cv_open:"Open result in Photopea", cv_hint:"Live preview · click to re-crop",
+        cv_open:"Open result in Photopea", cv_hint:"Live preview",
         cv_export:"Export cover (1080×1350)",
         cv_needphoto:"Add a cover photo first.",
         cv_downloaded:"Cover downloaded ✓",
@@ -538,6 +572,7 @@
         cv_sample:"Sample",
         cv_crop:"Crop",
         cv_grad:"Gradient", cv_darkness:"Darkness", cv_reach:"Reach",
+        cv_sec_photo:"Photo", cv_sec_text:"Style & text", cv_recrop:"Re-crop",
         fn_proc:(a,b)=>`Processing... ${a}/${b}`,
         fn_zip:(n)=>`${n} images downloaded as ZIP ✓`,
         fn_open:(n)=>`${n} images opened in Photopea ✓`,
@@ -577,6 +612,7 @@
       g('cvBoldHint').textContent = t('cv_bold_hint');
       g('cvCropApply').textContent = t('cv_crop');
       g('cvLblGrad').textContent = t('cv_grad'); g('cvLblOpacity').textContent = t('cv_darkness'); g('cvLblReach').textContent = t('cv_reach');
+      g('cvSecPhoto').textContent = t('cv_sec_photo'); g('cvSecText').textContent = t('cv_sec_text'); g('cvRecropBtn').textContent = t('cv_recrop');
       if (typeof cvUpdateWordCount === 'function') cvUpdateWordCount();
       if (typeof cvRender === 'function' && !document.getElementById('tab-cover').hidden) cvRender();
       g('langTr').classList.toggle('active', LANG === 'tr');
@@ -790,12 +826,15 @@
     }
 
     let isDragging = false, startX, startY, initialLeft, initialTop;
-    cropBox.addEventListener("mousedown", (e) => {
+    cropBox.addEventListener("pointerdown", (e) => {
         isDragging = true; startX = e.clientX; startY = e.clientY;
-        initialLeft = boxLeft; initialTop = boxTop; e.stopPropagation();
+        initialLeft = boxLeft; initialTop = boxTop;
+        try { cropBox.setPointerCapture(e.pointerId); } catch (err) {}
+        e.stopPropagation(); e.preventDefault();
     });
-    window.addEventListener("mousemove", (e) => {
+    cropBox.addEventListener("pointermove", (e) => {
         if (!isDragging) return;
+        e.preventDefault();
         let dx = e.clientX - startX, dy = e.clientY - startY;
         boxLeft = initialLeft + dx; boxTop = initialTop + dy;
         if (boxLeft < 0) boxLeft = 0;
@@ -804,7 +843,8 @@
         if (boxTop + boxHeight > imgHeight) boxTop = imgHeight - boxHeight;
         updateCropBoxDOM();
     });
-    window.addEventListener("mouseup", () => { isDragging = false; });
+    cropBox.addEventListener("pointerup", () => { isDragging = false; });
+    cropBox.addEventListener("pointercancel", () => { isDragging = false; });
 
     zoomSlider.addEventListener("input", (e) => {
         let zoomValue = parseFloat(e.target.value);
@@ -1211,6 +1251,7 @@
     const cvKickerWrap = document.getElementById('cvKickerWrap');
     const cvDrop = document.getElementById('cvDrop');
     const cvFileInput = document.getElementById('cvFileInput');
+    const cvRecropBtn = document.getElementById('cvRecropBtn');
     const cvState = { style:'s02', img:null, imgURL:null, crop:null };
     const CV_SAMPLE = {
         head:   "لا سقف يحميهم.. الشتاء يضاعف معاناة نازحي غزة",
@@ -1275,6 +1316,7 @@
         im.onload = () => {
             cvState.img = im; cvState.imgURL = url; cvState.crop = null;
             cvDrop.classList.add('hasimg'); cvDrop.textContent = t('cv_drop_ok');
+            cvRecropBtn.disabled = false; document.getElementById('cvExportBtn').disabled = false;
             cvEnsureFontsThenRender();
             openCvCrop();
         };
@@ -1314,9 +1356,10 @@
     }
 
     let cvDrag = false, cvsx, cvsy, cvil, cvit;
-    cvCropBox.addEventListener('mousedown', e => { cvDrag = true; cvsx = e.clientX; cvsy = e.clientY; cvil = cvbL; cvit = cvbT; e.stopPropagation(); });
-    window.addEventListener('mousemove', e => { if (!cvDrag) return; cvbL = cvil + (e.clientX - cvsx); cvbT = cvit + (e.clientY - cvsy); cvClampBox(); cvBoxDOM(); });
-    window.addEventListener('mouseup', () => { cvDrag = false; });
+    cvCropBox.addEventListener('pointerdown', e => { cvDrag = true; cvsx = e.clientX; cvsy = e.clientY; cvil = cvbL; cvit = cvbT; try { cvCropBox.setPointerCapture(e.pointerId); } catch (err) {} e.stopPropagation(); e.preventDefault(); });
+    cvCropBox.addEventListener('pointermove', e => { if (!cvDrag) return; e.preventDefault(); cvbL = cvil + (e.clientX - cvsx); cvbT = cvit + (e.clientY - cvsy); cvClampBox(); cvBoxDOM(); });
+    cvCropBox.addEventListener('pointerup', () => { cvDrag = false; });
+    cvCropBox.addEventListener('pointercancel', () => { cvDrag = false; });
     cvZoom.addEventListener('input', e => {
         const z = parseFloat(e.target.value), scale = 1 - z * 0.9;
         const maxW = (cviW / cviH > CV_RATIO) ? cviH * CV_RATIO : cviW;
@@ -1336,6 +1379,7 @@
     document.getElementById('cvCropClose').addEventListener('click', cvCloseCrop);
     cvCropModal.addEventListener('mousedown', e => { if (e.target === cvCropModal) cvCloseCrop(); });
     cvCanvas.addEventListener('click', () => { if (cvState.img) openCvCrop(); });
+    cvRecropBtn.addEventListener('click', () => { if (cvState.img) openCvCrop(); });
 
     // shape from the original PSD ramp (normalized); scaled by peak (darkness) and reach (length)
     const CV_GRAD_SHAPE = [[0,1],[0.20,0.98],[0.40,0.82],[0.60,0.48],[0.80,0.06],[0.92,0]];
