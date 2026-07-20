@@ -451,6 +451,7 @@
         cv_allbold:"Tümü kalın",
         cv_bold_hint:"İpucu: bir kelimeyi *yıldız* içine alarak kalın yap",
         cv_words:(n)=>`Kelime: ${n} (6–8 önerilir)`,
+        cv_sample:"Örnek",
         fn_proc:(a,b)=>`İşleniyor... ${a}/${b}`,
         fn_zip:(n)=>`${n} görsel ZIP olarak indirildi ✓`,
         fn_open:(n)=>`${n} görsel Photopea'da açıldı ✓`,
@@ -498,6 +499,7 @@
         cv_allbold:"All bold",
         cv_bold_hint:"Tip: wrap a word in *stars* to bold it",
         cv_words:(n)=>`Words: ${n} (6–8 recommended)`,
+        cv_sample:"Sample",
         fn_proc:(a,b)=>`Processing... ${a}/${b}`,
         fn_zip:(n)=>`${n} images downloaded as ZIP ✓`,
         fn_open:(n)=>`${n} images opened in Photopea ✓`,
@@ -536,6 +538,7 @@
       g('cvLblAllBold').textContent = t('cv_allbold');
       g('cvBoldHint').textContent = t('cv_bold_hint');
       if (typeof cvUpdateWordCount === 'function') cvUpdateWordCount();
+      if (typeof cvRender === 'function' && !document.getElementById('tab-cover').hidden) cvRender();
       g('langTr').classList.toggle('active', LANG === 'tr');
       g('langEn').classList.toggle('active', LANG === 'en');
       if (selectedFiles.length) renderThumbnails();
@@ -1169,6 +1172,16 @@
     const cvDrop = document.getElementById('cvDrop');
     const cvFileInput = document.getElementById('cvFileInput');
     const cvState = { style:'s02', img:null };
+    const CV_SAMPLE = {
+        head:   "لا سقف يحميهم.. الشتاء يضاعف معاناة نازحي غزة",
+        title3l:"الشتاء يضاعف معاناة نازحي غزة",
+        kicker: "لا سقف يحميهم.."
+    };
+    function cvPlaceholderBg(){
+        const g = cvCtx.createLinearGradient(0, 0, 0, 1350);
+        g.addColorStop(0, '#474c55'); g.addColorStop(1, '#15171b');
+        cvCtx.fillStyle = g; cvCtx.fillRect(0, 0, 1080, 1350);
+    }
 
     function cvSetStatus(msg){ cvStatusEl.textContent = msg || ''; }
 
@@ -1323,11 +1336,14 @@
         const W = 1080, H = 1350, cx = 540, boxW = 880;
         cvCtx.clearRect(0, 0, W, H);
         cvCtx.fillStyle = '#111'; cvCtx.fillRect(0, 0, W, H);
-        if (cvState.img) cvDrawCover(cvState.img);
+        const demo = (!cvState.img && cvHeadlineEl.value.trim() === '' && (cvState.style !== 's3l' || cvKickerEl.value.trim() === ''));
+        if (cvState.img) cvDrawCover(cvState.img); else cvPlaceholderBg();
         cvGradient(cvState.style === 's01' ? 'bottom' : 'top');
 
         const allBold = document.getElementById('cvAllBold').checked;
-        const tokens = cvParseTokens(cvHeadlineEl.value);
+        const headSrc = demo ? (cvState.style === 's3l' ? CV_SAMPLE.title3l : CV_SAMPLE.head) : cvHeadlineEl.value;
+        const kickSrc = demo ? CV_SAMPLE.kicker : cvKickerEl.value;
+        const tokens = cvParseTokens(headSrc);
 
         if (cvState.style === 's02'){
             const f = cvLayoutHeadline(tokens, boxW, 96, 40, allBold);
@@ -1342,7 +1358,7 @@
             f.lines.forEach((ln, i) => { const w = cvDrawLine(ln, cx, firstY + i * f.lh, f.fs, allBold); if (i === 0) firstW = w; });
             if (f.lines.length) cvAccent(cx, firstY - f.fs - 20, Math.min(Math.max(firstW, 140), 460));
         } else {
-            const kf = cvWrapFit(cvKickerEl.value, 760, 60, 28, '300', 1);
+            const kf = cvWrapFit(kickSrc, 760, 60, 28, '300', 1);
             const ky = 140 + kf.fs; let kw = 0;
             if (kf.lines[0]) { cvCtx.font = '300 ' + kf.fs + 'px HNArabic'; cvCtx.fillStyle = '#fff'; cvCtx.textAlign = 'center'; cvCtx.direction = 'rtl'; cvCtx.textBaseline = 'alphabetic'; cvCtx.fillText(kf.lines[0], cx, ky); kw = cvCtx.measureText(kf.lines[0]).width; }
             if (kf.lines[0]) cvAccent(cx, ky + 18, Math.min(Math.max(kw, 140), 480));
@@ -1352,6 +1368,19 @@
         }
 
         if (cvLogo.complete && cvLogo.naturalWidth) cvCtx.drawImage(cvLogo, 51, 1350 - 51 - 63, 63, 63);
+
+        if (demo){
+            cvCtx.save();
+            cvCtx.font = '400 27px HNArabic';
+            cvCtx.textAlign = 'right'; cvCtx.direction = 'rtl'; cvCtx.textBaseline = 'top';
+            const label = t('cv_sample');
+            const w = cvCtx.measureText(label).width;
+            cvCtx.fillStyle = 'rgba(0,0,0,0.45)';
+            cvCtx.fillRect(1080 - 34 - w - 20, 30, w + 30, 46);
+            cvCtx.fillStyle = 'rgba(255,255,255,0.9)';
+            cvCtx.fillText(label, 1080 - 44, 40);
+            cvCtx.restore();
+        }
         cvUpdateWordCount();
     }
 
