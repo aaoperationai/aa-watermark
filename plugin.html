@@ -247,6 +247,10 @@
         #cvCropBox { position:absolute; box-shadow:0 0 0 9999px rgba(0,0,0,.6); border:2px solid rgba(255,255,255,.85); cursor:move; box-sizing:border-box; }
         #cvZoom { flex:1; margin:0; }
         #cvCropApply { margin-top:0; padding:10px 0; width:90px; font-size:14px; background:linear-gradient(135deg,#2b7cff,#1a5ed8); text-align:center; }
+        .cv-slider-row { display:flex; align-items:center; gap:10px; margin-top:8px; }
+        .cv-slim { font-size:12px; color:#556; font-weight:600; min-width:64px; }
+        .cv-slider-row input[type=range] { flex:1; accent-color:#2b7cff; margin:0; cursor:pointer; }
+        .cv-slider-row .cv-slim:last-child { min-width:42px; text-align:right; color:#2b7cff; }
     </style>
 </head>
 
@@ -336,6 +340,10 @@
             <label class="checkbox-container"><input type="checkbox" id="cvAllBold" checked> <span id="cvLblAllBold">All bold</span></label>
         </div>
         <div class="cv-hint" id="cvBoldHint" style="text-align:right;">Tip: wrap a word in *stars* to bold it</div>
+
+        <div class="cv-label" id="cvLblGrad">Gradient</div>
+        <div class="cv-slider-row"><span class="cv-slim" id="cvLblOpacity">Darkness</span><input type="range" id="cvOpacity" min="20" max="100" value="72"><span class="cv-slim" id="cvOpacityVal">72%</span></div>
+        <div class="cv-slider-row"><span class="cv-slim" id="cvLblReach">Reach</span><input type="range" id="cvReach" min="30" max="100" value="90"><span class="cv-slim" id="cvReachVal">90%</span></div>
 
         <div class="checkboxes-wrapper">
             <label class="checkbox-container"><input type="checkbox" id="cvOpenPp"> <span id="cvLblOpen">Open result in Photopea</span></label>
@@ -479,6 +487,7 @@
         cv_words:(n)=>`Kelime: ${n} (6–8 önerilir)`,
         cv_sample:"Örnek",
         cv_crop:"Kırp",
+        cv_grad:"Gradyan", cv_darkness:"Koyuluk", cv_reach:"Uzunluk",
         fn_proc:(a,b)=>`İşleniyor... ${a}/${b}`,
         fn_zip:(n)=>`${n} görsel ZIP olarak indirildi ✓`,
         fn_open:(n)=>`${n} görsel Photopea'da açıldı ✓`,
@@ -528,6 +537,7 @@
         cv_words:(n)=>`Words: ${n} (6–8 recommended)`,
         cv_sample:"Sample",
         cv_crop:"Crop",
+        cv_grad:"Gradient", cv_darkness:"Darkness", cv_reach:"Reach",
         fn_proc:(a,b)=>`Processing... ${a}/${b}`,
         fn_zip:(n)=>`${n} images downloaded as ZIP ✓`,
         fn_open:(n)=>`${n} images opened in Photopea ✓`,
@@ -566,6 +576,7 @@
       g('cvLblAllBold').textContent = t('cv_allbold');
       g('cvBoldHint').textContent = t('cv_bold_hint');
       g('cvCropApply').textContent = t('cv_crop');
+      g('cvLblGrad').textContent = t('cv_grad'); g('cvLblOpacity').textContent = t('cv_darkness'); g('cvLblReach').textContent = t('cv_reach');
       if (typeof cvUpdateWordCount === 'function') cvUpdateWordCount();
       if (typeof cvRender === 'function' && !document.getElementById('tab-cover').hidden) cvRender();
       g('langTr').classList.toggle('active', LANG === 'tr');
@@ -1326,15 +1337,22 @@
     cvCropModal.addEventListener('mousedown', e => { if (e.target === cvCropModal) cvCloseCrop(); });
     cvCanvas.addEventListener('click', () => { if (cvState.img) openCvCrop(); });
 
-    function cvGradient(dir){
+    // shape from the original PSD ramp (normalized); scaled by peak (darkness) and reach (length)
+    const CV_GRAD_SHAPE = [[0,1],[0.20,0.98],[0.40,0.82],[0.60,0.48],[0.80,0.06],[0.92,0]];
+    function cvGradient(dir, peak, reach){
         const g = cvCtx.createLinearGradient(0, dir === 'top' ? 0 : 1350, 0, dir === 'top' ? 1350 : 0);
-        g.addColorStop(0.00, 'rgba(0,0,0,0.97)');
-        g.addColorStop(0.20, 'rgba(0,0,0,0.95)');
-        g.addColorStop(0.40, 'rgba(0,0,0,0.80)');
-        g.addColorStop(0.60, 'rgba(0,0,0,0.47)');
-        g.addColorStop(0.80, 'rgba(0,0,0,0.06)');
-        g.addColorStop(0.92, 'rgba(0,0,0,0.00)');
+        CV_GRAD_SHAPE.forEach(([f, a]) => { g.addColorStop(Math.min(1, f / 0.92 * reach), 'rgba(0,0,0,' + (a * peak).toFixed(3) + ')'); });
+        if (reach < 0.999) g.addColorStop(1, 'rgba(0,0,0,0)');
         cvCtx.fillStyle = g; cvCtx.fillRect(0, 0, 1080, 1350);
+    }
+    function cvGradParams(){
+        return { op: parseInt(document.getElementById('cvOpacity').value, 10) / 100, reach: parseInt(document.getElementById('cvReach').value, 10) / 100 };
+    }
+    function cvSyncGrad(){
+        document.getElementById('cvOpacityVal').textContent = document.getElementById('cvOpacity').value + '%';
+        document.getElementById('cvReachVal').textContent = document.getElementById('cvReach').value + '%';
+        try { localStorage.setItem('aa_cv_op', document.getElementById('cvOpacity').value); localStorage.setItem('aa_cv_reach', document.getElementById('cvReach').value); } catch (e) {}
+        cvRender();
     }
 
     function cvDrawCover(img){
@@ -1430,7 +1448,8 @@
         cvCtx.fillStyle = '#111'; cvCtx.fillRect(0, 0, W, H);
         const demo = (!cvState.img && cvHeadlineEl.value.trim() === '' && (cvState.style !== 's3l' || cvKickerEl.value.trim() === ''));
         if (cvState.img) cvDrawCover(cvState.img); else cvPlaceholderBg();
-        cvGradient(cvState.style === 's01' ? 'bottom' : 'top');
+        const gp = cvGradParams();
+        cvGradient(cvState.style === 's01' ? 'bottom' : 'top', gp.op, gp.reach);
 
         const allBold = document.getElementById('cvAllBold').checked;
         const headSrc = demo ? (cvState.style === 's3l' ? CV_SAMPLE.title3l : CV_SAMPLE.head) : cvHeadlineEl.value;
@@ -1475,6 +1494,14 @@
         }
         cvUpdateWordCount();
     }
+
+    document.getElementById('cvOpacity').addEventListener('input', cvSyncGrad);
+    document.getElementById('cvReach').addEventListener('input', cvSyncGrad);
+    (function(){
+        try { const o = localStorage.getItem('aa_cv_op'); const r = localStorage.getItem('aa_cv_reach'); if (o) document.getElementById('cvOpacity').value = o; if (r) document.getElementById('cvReach').value = r; } catch (e) {}
+        document.getElementById('cvOpacityVal').textContent = document.getElementById('cvOpacity').value + '%';
+        document.getElementById('cvReachVal').textContent = document.getElementById('cvReach').value + '%';
+    })();
 
     function cvExport(openInPp){
         if (!cvState.img) { cvSetStatus(t('cv_needphoto')); return; }
