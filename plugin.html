@@ -212,6 +212,32 @@
         .lang-btn { margin:0; width:auto; padding:5px 11px; font-size:12px; font-weight:700; background:#fff; color:#2b7cff; border:none; border-radius:0; cursor:pointer; transition:.15s ease; }
         .lang-btn:hover { background:#eef4ff; transform:none; box-shadow:none; }
         .lang-btn.active { background:#2b7cff; color:#fff; }
+        /* ---- Cover tab: fonts, tabs, cover UI ---- */
+        @font-face { font-family:'HNArabic'; src:url('HelveticaNeueLTArabic-Bold.ttf');  font-weight:700; font-display:swap; }
+        @font-face { font-family:'HNArabic'; src:url('HelveticaNeueLTArabic-Roman.ttf'); font-weight:400; font-display:swap; }
+        @font-face { font-family:'HNArabic'; src:url('HelveticaNeueLTArabic-Light.ttf'); font-weight:300; font-display:swap; }
+
+        .tabbar { display:flex; gap:6px; margin-bottom:12px; }
+        .tab { flex:1; margin:0; width:auto; padding:9px; border-radius:10px; border:1px solid #d6dae6; background:#fff; font-family:inherit; font-size:13px; font-weight:700; color:#556; cursor:pointer; transition:.15s ease; }
+        .tab:hover { background:#eef4ff; transform:none; box-shadow:none; }
+        .tab.active { background:#111827; color:#fff; border-color:#111827; }
+        .tabpane[hidden]{ display:none; }
+
+        .cv-label { font-size:12px; font-weight:600; color:#556; margin:14px 0 6px; }
+        .cv-styles { display:flex; gap:6px; }
+        .cv-style { flex:1; margin:0; width:auto; padding:8px 4px; border-radius:9px; border:1px solid #d6dae6; background:#fff; font-size:12px; font-weight:600; color:#2b7cff; cursor:pointer; transition:.15s ease; }
+        .cv-style:hover { background:#eef4ff; transform:none; box-shadow:none; }
+        .cv-style.active { background:#2b7cff; color:#fff; border-color:#2b7cff; }
+        #cvDrop { border:2px dashed #2b7cff; border-radius:14px; padding:22px 14px; text-align:center; background:#fff; cursor:pointer; font-size:13px; font-weight:500; color:#444; transition:.2s ease; }
+        #cvDrop:hover { background:#eef4ff; }
+        #cvDrop.hasimg { border-style:solid; border-color:#10b981; color:#059669; background:#f0fdf7; }
+        #cvHeadline, #cvKicker { width:100%; padding:10px 12px; border:2px solid #e5e7eb; border-radius:10px; font-family:'HNArabic','Inter',sans-serif; font-size:15px; direction:rtl; box-sizing:border-box; }
+        #cvHeadline { resize:vertical; }
+        #cvHeadline:focus, #cvKicker:focus { outline:none; border-color:#2b7cff; }
+        #cvKickerWrap[hidden] { display:none; }
+        .cv-preview-wrap { margin-top:14px; display:flex; justify-content:center; }
+        #cvPreview { width:270px; height:337.5px; border-radius:10px; border:1px solid #e5e7eb; background:#111; box-shadow:0 6px 18px rgba(0,0,0,.12); }
+        .cv-hint { font-size:11px; color:#8a90a0; text-align:center; margin-top:6px; }
     </style>
 </head>
 
@@ -224,6 +250,13 @@
             <button id="langEn" class="lang-btn">EN</button>
         </div>
     </div>
+
+    <div class="tabbar">
+        <button id="tabW" class="tab active">Watermark</button>
+        <button id="tabC" class="tab">Cover</button>
+    </div>
+
+    <div id="tab-watermark" class="tabpane">
 
     <div class="pp-row" id="ppRow">
         <button class="pp-btn" id="importBtn" title="Photopea'da açık olan görseli buraya al">⤵ Görseli al</button>
@@ -262,6 +295,50 @@
     <div id="gifHint">🎞️ GIF karesi sırası: numaralı tutamağı (⠿) sürükleyin — 1 ilk kare, 2 ikinci…</div>
 
     <div id="thumbnailContainer"></div>
+
+    </div><!-- /tab-watermark -->
+
+    <div id="tab-cover" class="tabpane" hidden>
+
+        <div class="pp-row">
+            <button class="pp-btn" id="cvImportBtn">⤵ Get image</button>
+        </div>
+
+        <div id="cvDrop">Drag a cover photo, or click</div>
+        <input type="file" id="cvFileInput" accept="image/*" style="display:none">
+
+        <div class="cv-label" id="cvLblStyle">Style</div>
+        <div class="cv-styles">
+            <button class="cv-style active" data-style="s02" id="cvS02">Style 02</button>
+            <button class="cv-style" data-style="s01" id="cvS01">Style 01</button>
+            <button class="cv-style" data-style="s3l" id="cvS3L">3 Lines</button>
+        </div>
+
+        <div id="cvKickerWrap" hidden>
+            <div class="cv-label" id="cvLblKicker">Top line (kicker)</div>
+            <input type="text" id="cvKicker" placeholder="لا سقف يحميهم..">
+        </div>
+
+        <div class="cv-label" id="cvLblHeadline">Headline</div>
+        <textarea id="cvHeadline" rows="2" placeholder="اكتب عنوان الغلاف هنا"></textarea>
+        <div id="cvWordCount" class="cv-hint" style="text-align:right;margin-top:6px;"></div>
+
+        <div class="checkboxes-wrapper">
+            <label class="checkbox-container"><input type="checkbox" id="cvAllBold" checked> <span id="cvLblAllBold">All bold</span></label>
+        </div>
+        <div class="cv-hint" id="cvBoldHint" style="text-align:right;">Tip: wrap a word in *stars* to bold it</div>
+
+        <div class="checkboxes-wrapper">
+            <label class="checkbox-container"><input type="checkbox" id="cvOpenPp"> <span id="cvLblOpen">Open result in Photopea</span></label>
+        </div>
+
+        <div class="cv-preview-wrap"><canvas id="cvPreview" width="1080" height="1350"></canvas></div>
+        <div class="cv-hint" id="cvHint">Live preview</div>
+
+        <button id="cvExportBtn">Export cover (1080×1350)</button>
+        <div id="cvStatus" style="margin-top:10px;font-size:12px;color:#6b7280;text-align:center;min-height:16px;"></div>
+
+    </div><!-- /tab-cover -->
 
     <div id="previewModal">
         <div id="closeModalBtn">✕</div>
@@ -361,6 +438,19 @@
         st_noresp:"Photopea'dan yanıt gelmedi. Açık bir belge var mı?",
         st_imported:"Görsel alındı ✓",
         logo_upload:"Logo yükle",
+        tab_w:"Watermark", tab_c:"Kapak",
+        cv_drop:"Kapak fotoğrafını sürükleyin veya tıklayın",
+        cv_drop_ok:"Kapak fotoğrafı hazır ✓",
+        cv_style:"Stil", cv_s02:"Stil 02", cv_s01:"Stil 01", cv_s3l:"3 Satır",
+        cv_kicker:"Üst satır", cv_headline:"Başlık",
+        cv_open:"Sonucu Photopea'da aç", cv_hint:"Canlı önizleme",
+        cv_export:"Kapağı indir (1080×1350)",
+        cv_needphoto:"Önce kapak fotoğrafı ekleyin.",
+        cv_downloaded:"Kapak indirildi ✓",
+        cv_opened:"Kapak Photopea'da açıldı ✓",
+        cv_allbold:"Tümü kalın",
+        cv_bold_hint:"İpucu: bir kelimeyi *yıldız* içine alarak kalın yap",
+        cv_words:(n)=>`Kelime: ${n} (6–8 önerilir)`,
         fn_proc:(a,b)=>`İşleniyor... ${a}/${b}`,
         fn_zip:(n)=>`${n} görsel ZIP olarak indirildi ✓`,
         fn_open:(n)=>`${n} görsel Photopea'da açıldı ✓`,
@@ -395,6 +485,19 @@
         st_noresp:"No response from Photopea. Is a document open?",
         st_imported:"Image received ✓",
         logo_upload:"Upload logo",
+        tab_w:"Watermark", tab_c:"Cover",
+        cv_drop:"Drag a cover photo, or click",
+        cv_drop_ok:"Cover photo ready ✓",
+        cv_style:"Style", cv_s02:"Style 02", cv_s01:"Style 01", cv_s3l:"3 Lines",
+        cv_kicker:"Top line (kicker)", cv_headline:"Headline",
+        cv_open:"Open result in Photopea", cv_hint:"Live preview",
+        cv_export:"Export cover (1080×1350)",
+        cv_needphoto:"Add a cover photo first.",
+        cv_downloaded:"Cover downloaded ✓",
+        cv_opened:"Cover opened in Photopea ✓",
+        cv_allbold:"All bold",
+        cv_bold_hint:"Tip: wrap a word in *stars* to bold it",
+        cv_words:(n)=>`Words: ${n} (6–8 recommended)`,
         fn_proc:(a,b)=>`Processing... ${a}/${b}`,
         fn_zip:(n)=>`${n} images downloaded as ZIP ✓`,
         fn_open:(n)=>`${n} images opened in Photopea ✓`,
@@ -421,6 +524,18 @@
       g('opt1080').textContent = "1080 x 1080 (" + t('d_sq') + ")";
       g('opt1350').textContent = "1080 x 1350 (" + t('d_v')  + ")";
       g('opt978').textContent  = "978 x 548 ("   + t('d_h')  + ")";
+      g('tabW').textContent = t('tab_w'); g('tabC').textContent = t('tab_c');
+      g('cvImportBtn').textContent = t('import');
+      g('cvImportBtn').title = inPhotopea ? t('import_title') : t('import_title_off');
+      if (!cvState.img) g('cvDrop').textContent = t('cv_drop');
+      g('cvLblStyle').textContent = t('cv_style');
+      g('cvS02').textContent = t('cv_s02'); g('cvS01').textContent = t('cv_s01'); g('cvS3L').textContent = t('cv_s3l');
+      g('cvLblKicker').textContent = t('cv_kicker'); g('cvLblHeadline').textContent = t('cv_headline');
+      g('cvLblOpen').textContent = t('cv_open'); g('cvHint').textContent = t('cv_hint');
+      g('cvExportBtn').textContent = t('cv_export');
+      g('cvLblAllBold').textContent = t('cv_allbold');
+      g('cvBoldHint').textContent = t('cv_bold_hint');
+      if (typeof cvUpdateWordCount === 'function') cvUpdateWordCount();
       g('langTr').classList.toggle('active', LANG === 'tr');
       g('langEn').classList.toggle('active', LANG === 'en');
       if (selectedFiles.length) renderThumbnails();
@@ -998,40 +1113,37 @@
 
     // Import the currently open Photopea document into the tool.
     const importBtn = document.getElementById("importBtn");
-    let awaitingImport = false;
+    let importTarget = null;   // null | 'wm' | 'cover'
     let importTimer = null;
 
-    if (!inPhotopea) {
-        importBtn.disabled = true;
-        importBtn.title = t('import_title_off');
-    }
+    if (!inPhotopea) { importBtn.disabled = true; importBtn.title = t('import_title_off'); }
 
-    importBtn.addEventListener("click", () => {
-        if (!inPhotopea) { setStatus(t('st_import_off')); return; }
-        awaitingImport = true;
-        setStatus(t('st_importing'));
-        // saveToOE sends the active document back to us as an ArrayBuffer.
+    function requestPhotopeaImage(target){
+        const say = (target === 'cover') ? cvSetStatus : setStatus;
+        if (!inPhotopea) { say(t('st_import_off')); return; }
+        importTarget = target;
+        say(t('st_importing'));
         window.parent.postMessage('app.activeDocument.saveToOE("png")', "*");
         clearTimeout(importTimer);
         importTimer = setTimeout(() => {
-            if (awaitingImport) {
-                awaitingImport = false;
-                setStatus(t('st_noresp'));
-            }
+            if (importTarget) { const tg = importTarget; importTarget = null; (tg === 'cover' ? cvSetStatus : setStatus)(t('st_noresp')); }
         }, 6000);
-    });
+    }
+    importBtn.addEventListener("click", () => requestPhotopeaImage('wm'));
 
     window.addEventListener("message", async (event) => {
         const data = event.data;
         // Photopea returns the exported document as an ArrayBuffer, then a "done" string.
-        if (awaitingImport && data instanceof ArrayBuffer) {
-            awaitingImport = false;
-            clearTimeout(importTimer);
+        if (importTarget && data instanceof ArrayBuffer) {
+            const tg = importTarget; importTarget = null; clearTimeout(importTimer);
             const blob = new Blob([data], { type: "image/png" });
-            const file = new File([blob], "photopea-" + Date.now() + ".png", { type: "image/png" });
-            file.isImported = true;
-            await handleFiles([file]);
-            setStatus(t('st_imported'));
+            if (tg === 'cover') { cvLoadBlob(blob); cvSetStatus(t('st_imported')); }
+            else {
+                const file = new File([blob], "photopea-" + Date.now() + ".png", { type: "image/png" });
+                file.isImported = true;
+                await handleFiles([file]);
+                setStatus(t('st_imported'));
+            }
         }
     });
 
@@ -1044,6 +1156,215 @@
     });
 
     /* Pre-load logos quietly on open so the first run is instant / warnings show early. */
+    /* ============================ COVER TAB ============================ */
+    const CV_LOGO = "data:image/png;base64,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";
+    const cvLogo = new Image(); cvLogo.src = CV_LOGO;
+
+    const cvCanvas = document.getElementById('cvPreview');
+    const cvCtx = cvCanvas.getContext('2d');
+    const cvStatusEl = document.getElementById('cvStatus');
+    const cvHeadlineEl = document.getElementById('cvHeadline');
+    const cvKickerEl = document.getElementById('cvKicker');
+    const cvKickerWrap = document.getElementById('cvKickerWrap');
+    const cvDrop = document.getElementById('cvDrop');
+    const cvFileInput = document.getElementById('cvFileInput');
+    const cvState = { style:'s02', img:null };
+
+    function cvSetStatus(msg){ cvStatusEl.textContent = msg || ''; }
+
+    // tabs
+    const tabW = document.getElementById('tabW');
+    const tabC = document.getElementById('tabC');
+    function showTab(which){
+        document.getElementById('tab-watermark').hidden = (which !== 'w');
+        document.getElementById('tab-cover').hidden = (which !== 'c');
+        tabW.classList.toggle('active', which === 'w');
+        tabC.classList.toggle('active', which === 'c');
+        if (which === 'c') cvEnsureFontsThenRender();
+    }
+    tabW.addEventListener('click', () => showTab('w'));
+    tabC.addEventListener('click', () => showTab('c'));
+
+    let cvFontsReady = false;
+    function cvEnsureFontsThenRender(){
+        if (cvFontsReady) { cvRender(); return; }
+        const done = () => { cvFontsReady = true; cvRender(); };
+        if (document.fonts && document.fonts.load) {
+            Promise.all([document.fonts.load('700 80px HNArabic'), document.fonts.load('300 44px HNArabic')]).then(done).catch(done);
+        } else done();
+    }
+    if (cvLogo.complete) {} else cvLogo.onload = () => { if (!document.getElementById('tab-cover').hidden) cvRender(); };
+
+    // style buttons
+    document.querySelectorAll('.cv-style').forEach(b => {
+        b.addEventListener('click', () => {
+            document.querySelectorAll('.cv-style').forEach(x => x.classList.remove('active'));
+            b.classList.add('active');
+            cvState.style = b.dataset.style;
+            cvKickerWrap.hidden = (cvState.style !== 's3l');
+            cvRender();
+        });
+    });
+    cvHeadlineEl.addEventListener('input', cvRender);
+    cvKickerEl.addEventListener('input', cvRender);
+    document.getElementById('cvAllBold').addEventListener('change', cvRender);
+
+    // photo input
+    cvDrop.addEventListener('click', () => cvFileInput.click());
+    cvDrop.addEventListener('dragover', e => e.preventDefault());
+    cvDrop.addEventListener('drop', e => { e.preventDefault(); const f = [...e.dataTransfer.files].find(x => x.type && x.type.startsWith('image/')); if (f) cvLoadBlob(f); });
+    cvFileInput.addEventListener('change', e => { const f = e.target.files[0]; if (f) cvLoadBlob(f); });
+
+    function cvLoadBlob(blob){
+        const url = URL.createObjectURL(blob);
+        const im = new Image();
+        im.onload = () => { cvState.img = im; cvDrop.classList.add('hasimg'); cvDrop.textContent = t('cv_drop_ok'); cvEnsureFontsThenRender(); URL.revokeObjectURL(url); };
+        im.src = url;
+    }
+
+    document.getElementById('cvImportBtn').addEventListener('click', () => requestPhotopeaImage('cover'));
+    if (!inPhotopea) { const b = document.getElementById('cvImportBtn'); b.disabled = true; b.title = t('import_title_off'); }
+
+    function cvGradient(dir){
+        const g = cvCtx.createLinearGradient(0, dir === 'top' ? 0 : 1350, 0, dir === 'top' ? 1350 : 0);
+        g.addColorStop(0.00, 'rgba(0,0,0,0.97)');
+        g.addColorStop(0.20, 'rgba(0,0,0,0.95)');
+        g.addColorStop(0.40, 'rgba(0,0,0,0.80)');
+        g.addColorStop(0.60, 'rgba(0,0,0,0.47)');
+        g.addColorStop(0.80, 'rgba(0,0,0,0.06)');
+        g.addColorStop(0.92, 'rgba(0,0,0,0.00)');
+        cvCtx.fillStyle = g; cvCtx.fillRect(0, 0, 1080, 1350);
+    }
+
+    function cvDrawCover(img){
+        const W = 1080, H = 1350, ir = img.width / img.height, tr = W / H;
+        let sw, sh, sx, sy;
+        if (ir > tr) { sh = img.height; sw = sh * tr; sx = (img.width - sw) / 2; sy = 0; }
+        else { sw = img.width; sh = sw / tr; sx = 0; sy = (img.height - sh) / 2; }
+        cvCtx.imageSmoothingEnabled = true; cvCtx.imageSmoothingQuality = 'high';
+        cvCtx.drawImage(img, sx, sy, sw, sh, 0, 0, W, H);
+    }
+
+    function cvWrapFit(text, maxWidth, maxFont, minFont, weight, maxLines){
+        text = (text || '').trim();
+        const build = (fs) => {
+            cvCtx.font = weight + ' ' + fs + 'px HNArabic';
+            const words = text.split(/\s+/).filter(Boolean);
+            const lines = []; let cur = '';
+            for (const w of words){
+                const test = cur ? cur + ' ' + w : w;
+                if (!cur || cvCtx.measureText(test).width <= maxWidth) cur = test;
+                else { lines.push(cur); cur = w; }
+            }
+            if (cur) lines.push(cur);
+            return lines;
+        };
+        for (let fs = maxFont; fs >= minFont; fs -= 2){
+            const lines = build(fs);
+            if (lines.length <= maxLines) return { fs, lines, lh: Math.round(fs * 1.34) };
+        }
+        return { fs: minFont, lines: build(minFont), lh: Math.round(minFont * 1.34) };
+    }
+
+    function cvAccent(cx, y, w){ cvCtx.fillStyle = '#B1876A'; cvCtx.fillRect(Math.round(cx - w / 2), Math.round(y), Math.round(w), 8); }
+
+    /* --- headline as bold-aware tokens; *word* => bold; team rule: 6-8 words, 2 lines, line1 >= line2 --- */
+    function cvParseTokens(text){
+        const tokens = [];
+        (text || '').split('*').forEach((seg, idx) => {
+            const bold = (idx % 2 === 1);
+            seg.trim().split(/\s+/).filter(Boolean).forEach(w => tokens.push({ text: w, bold }));
+        });
+        return tokens;
+    }
+    function cvWordWidth(tok, fs, allBold){ cvCtx.font = ((tok.bold || allBold) ? '700' : '400') + ' ' + fs + 'px HNArabic'; return cvCtx.measureText(tok.text).width; }
+    function cvSpaceWidth(fs){ cvCtx.font = '400 ' + fs + 'px HNArabic'; return cvCtx.measureText(' ').width || fs * 0.25; }
+    function cvLineWidth(toks, fs, allBold){ if (!toks.length) return 0; let s = 0; toks.forEach(t => s += cvWordWidth(t, fs, allBold)); return s + cvSpaceWidth(fs) * (toks.length - 1); }
+
+    function cvLayoutHeadline(tokens, boxW, maxFont, minFont, allBold){
+        const n = tokens.length;
+        for (let fs = maxFont; fs >= minFont; fs -= 2){
+            if (n === 0) return { fs, lines: [], lh: Math.round(fs * 1.34) };
+            if (n === 1){ if (cvWordWidth(tokens[0], fs, allBold) <= boxW) return { fs, lines: [tokens], lh: Math.round(fs * 1.34) }; else continue; }
+            let best = null;
+            for (let k = 1; k < n; k++){
+                const l1 = tokens.slice(0, k), l2 = tokens.slice(k);
+                const w1 = cvLineWidth(l1, fs, allBold), w2 = cvLineWidth(l2, fs, allBold);
+                if (w1 <= boxW && w2 <= boxW && w1 >= w2){ const d = w1 - w2; if (!best || d < best.d) best = { k, d }; }
+            }
+            if (best) return { fs, lines: [tokens.slice(0, best.k), tokens.slice(best.k)], lh: Math.round(fs * 1.34) };
+            for (let k = 1; k < n; k++){ const l1 = tokens.slice(0, k), l2 = tokens.slice(k); if (cvLineWidth(l1, fs, allBold) <= boxW && cvLineWidth(l2, fs, allBold) <= boxW) return { fs, lines: [l1, l2], lh: Math.round(fs * 1.34) }; }
+        }
+        const fs = minFont, lines = [[], []]; let li = 0;
+        tokens.forEach(tk => { if (li === 0 && lines[0].length && cvLineWidth(lines[0].concat(tk), fs, allBold) > boxW) li = 1; lines[li].push(tk); });
+        return { fs, lines, lh: Math.round(fs * 1.34) };
+    }
+
+    // draw one RTL line word-by-word (mixed weights), centered on cx; returns line width
+    function cvDrawLine(toks, cx, y, fs, allBold){
+        if (!toks.length) return 0;
+        const widths = toks.map(t => cvWordWidth(t, fs, allBold));
+        const sp = cvSpaceWidth(fs);
+        const total = widths.reduce((a, b) => a + b, 0) + sp * (toks.length - 1);
+        cvCtx.textAlign = 'right'; cvCtx.direction = 'rtl'; cvCtx.textBaseline = 'alphabetic'; cvCtx.fillStyle = '#fff';
+        let x = cx + total / 2;
+        toks.forEach((t, i) => { cvCtx.font = ((t.bold || allBold) ? '700' : '400') + ' ' + fs + 'px HNArabic'; cvCtx.fillText(t.text, x, y); x -= widths[i] + sp; });
+        return total;
+    }
+
+    function cvUpdateWordCount(){
+        const el = document.getElementById('cvWordCount'); if (!el) return;
+        const n = cvParseTokens(cvHeadlineEl.value).length;
+        el.textContent = t('cv_words')(n);
+        el.style.color = (n >= 6 && n <= 8) ? '#059669' : '#d97706';
+    }
+
+    function cvRender(){
+        const W = 1080, H = 1350, cx = 540, boxW = 880;
+        cvCtx.clearRect(0, 0, W, H);
+        cvCtx.fillStyle = '#111'; cvCtx.fillRect(0, 0, W, H);
+        if (cvState.img) cvDrawCover(cvState.img);
+        cvGradient(cvState.style === 's01' ? 'bottom' : 'top');
+
+        const allBold = document.getElementById('cvAllBold').checked;
+        const tokens = cvParseTokens(cvHeadlineEl.value);
+
+        if (cvState.style === 's02'){
+            const f = cvLayoutHeadline(tokens, boxW, 96, 40, allBold);
+            const y0 = 150 + f.fs; let lastW = 0;
+            f.lines.forEach((ln, i) => { lastW = cvDrawLine(ln, cx, y0 + i * f.lh, f.fs, allBold); });
+            const lastY = y0 + (Math.max(f.lines.length, 1) - 1) * f.lh;
+            if (f.lines.length) cvAccent(cx, lastY + 22, Math.min(Math.max(lastW, 140), 620));
+        } else if (cvState.style === 's01'){
+            const f = cvLayoutHeadline(tokens, boxW, 96, 40, allBold);
+            const nL = Math.max(f.lines.length, 1);
+            const firstY = 1000 - (nL - 1) * f.lh; let firstW = 0;
+            f.lines.forEach((ln, i) => { const w = cvDrawLine(ln, cx, firstY + i * f.lh, f.fs, allBold); if (i === 0) firstW = w; });
+            if (f.lines.length) cvAccent(cx, firstY - f.fs - 20, Math.min(Math.max(firstW, 140), 460));
+        } else {
+            const kf = cvWrapFit(cvKickerEl.value, 760, 60, 28, '300', 1);
+            const ky = 140 + kf.fs; let kw = 0;
+            if (kf.lines[0]) { cvCtx.font = '300 ' + kf.fs + 'px HNArabic'; cvCtx.fillStyle = '#fff'; cvCtx.textAlign = 'center'; cvCtx.direction = 'rtl'; cvCtx.textBaseline = 'alphabetic'; cvCtx.fillText(kf.lines[0], cx, ky); kw = cvCtx.measureText(kf.lines[0]).width; }
+            if (kf.lines[0]) cvAccent(cx, ky + 18, Math.min(Math.max(kw, 140), 480));
+            const tf = cvLayoutHeadline(tokens, boxW, 84, 40, allBold);
+            const ty = ky + 56 + tf.fs;
+            tf.lines.forEach((ln, i) => { cvDrawLine(ln, cx, ty + i * tf.lh, tf.fs, allBold); });
+        }
+
+        if (cvLogo.complete && cvLogo.naturalWidth) cvCtx.drawImage(cvLogo, 51, 1350 - 51 - 63, 63, 63);
+        cvUpdateWordCount();
+    }
+
+    function cvExport(openInPp){
+        if (!cvState.img) { cvSetStatus(t('cv_needphoto')); return; }
+        cvRender();
+        cvCanvas.toBlob(async (blob) => {
+            if (openInPp && inPhotopea) { await openBlobInPhotopea(blob); cvSetStatus(t('cv_opened')); }
+            else { downloadBlob(blob, 'AA-Cover-' + Date.now() + '.png'); cvSetStatus(t('cv_downloaded')); }
+        }, 'image/png', 0.95);
+    }
+    document.getElementById('cvExportBtn').addEventListener('click', () => cvExport(document.getElementById('cvOpenPp').checked));
+
     ensureLogos();
     applyLang();
     </script>
