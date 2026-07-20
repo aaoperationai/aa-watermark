@@ -238,6 +238,15 @@
         .cv-preview-wrap { margin-top:14px; display:flex; justify-content:center; }
         #cvPreview { width:270px; height:337.5px; border-radius:10px; border:1px solid #e5e7eb; background:#111; box-shadow:0 6px 18px rgba(0,0,0,.12); }
         .cv-hint { font-size:11px; color:#8a90a0; text-align:center; margin-top:6px; }
+        #cvPreview { cursor: pointer; }
+        #cvCropModal { display:none; position:fixed; inset:0; backdrop-filter:blur(10px); background:rgba(0,0,0,.65); align-items:center; justify-content:center; flex-direction:column; z-index:1000; }
+        #cvCropClose { position:absolute; top:10px; right:10px; width:32px; height:32px; background:#ef4444; color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:bold; cursor:pointer; z-index:1002; box-shadow:0 4px 12px rgba(0,0,0,.25); }
+        #cvCropClose:hover { background:#b91c1c; }
+        #cvCropContainer { position:relative; display:inline-block; max-width:88vw; max-height:70vh; border-radius:8px; box-shadow:0 15px 40px rgba(0,0,0,.45); background:#111; overflow:hidden; }
+        #cvCropImg { display:block; max-width:100%; max-height:70vh; user-select:none; -webkit-user-drag:none; }
+        #cvCropBox { position:absolute; box-shadow:0 0 0 9999px rgba(0,0,0,.6); border:2px solid rgba(255,255,255,.85); cursor:move; box-sizing:border-box; }
+        #cvZoom { flex:1; margin:0; }
+        #cvCropApply { margin-top:0; padding:10px 0; width:90px; font-size:14px; background:linear-gradient(135deg,#2b7cff,#1a5ed8); text-align:center; }
     </style>
 </head>
 
@@ -360,6 +369,23 @@
         </div>
     </div>
 
+    <div id="cvCropModal">
+        <div id="cvCropClose">✕</div>
+        <div id="cvCropContainer">
+            <img id="cvCropImg">
+            <div id="cvCropBox">
+                <div class="grid-line h-line" style="top: 33.33%;"></div>
+                <div class="grid-line h-line" style="top: 66.66%;"></div>
+                <div class="grid-line v-line" style="left: 33.33%;"></div>
+                <div class="grid-line v-line" style="left: 66.66%;"></div>
+            </div>
+        </div>
+        <div class="crop-toolbar">
+            <input type="range" id="cvZoom" min="0" max="1" step="0.001" value="0">
+            <button id="cvCropApply">Crop</button>
+        </div>
+    </div>
+
     <script src="jszip.min.js"></script>
     <script src="pica.min.js"></script>
     <script src="gif.js"></script>
@@ -443,7 +469,7 @@
         cv_drop_ok:"Kapak fotoğrafı hazır ✓",
         cv_style:"Stil", cv_s02:"Stil 02", cv_s01:"Stil 01", cv_s3l:"3 Satır",
         cv_kicker:"Üst satır", cv_headline:"Başlık",
-        cv_open:"Sonucu Photopea'da aç", cv_hint:"Canlı önizleme",
+        cv_open:"Sonucu Photopea'da aç", cv_hint:"Canlı önizleme · yeniden kırpmak için tıkla",
         cv_export:"Kapağı indir (1080×1350)",
         cv_needphoto:"Önce kapak fotoğrafı ekleyin.",
         cv_downloaded:"Kapak indirildi ✓",
@@ -452,6 +478,7 @@
         cv_bold_hint:"İpucu: bir kelimeyi *yıldız* içine alarak kalın yap",
         cv_words:(n)=>`Kelime: ${n} (6–8 önerilir)`,
         cv_sample:"Örnek",
+        cv_crop:"Kırp",
         fn_proc:(a,b)=>`İşleniyor... ${a}/${b}`,
         fn_zip:(n)=>`${n} görsel ZIP olarak indirildi ✓`,
         fn_open:(n)=>`${n} görsel Photopea'da açıldı ✓`,
@@ -491,7 +518,7 @@
         cv_drop_ok:"Cover photo ready ✓",
         cv_style:"Style", cv_s02:"Style 02", cv_s01:"Style 01", cv_s3l:"3 Lines",
         cv_kicker:"Top line (kicker)", cv_headline:"Headline",
-        cv_open:"Open result in Photopea", cv_hint:"Live preview",
+        cv_open:"Open result in Photopea", cv_hint:"Live preview · click to re-crop",
         cv_export:"Export cover (1080×1350)",
         cv_needphoto:"Add a cover photo first.",
         cv_downloaded:"Cover downloaded ✓",
@@ -500,6 +527,7 @@
         cv_bold_hint:"Tip: wrap a word in *stars* to bold it",
         cv_words:(n)=>`Words: ${n} (6–8 recommended)`,
         cv_sample:"Sample",
+        cv_crop:"Crop",
         fn_proc:(a,b)=>`Processing... ${a}/${b}`,
         fn_zip:(n)=>`${n} images downloaded as ZIP ✓`,
         fn_open:(n)=>`${n} images opened in Photopea ✓`,
@@ -537,6 +565,7 @@
       g('cvExportBtn').textContent = t('cv_export');
       g('cvLblAllBold').textContent = t('cv_allbold');
       g('cvBoldHint').textContent = t('cv_bold_hint');
+      g('cvCropApply').textContent = t('cv_crop');
       if (typeof cvUpdateWordCount === 'function') cvUpdateWordCount();
       if (typeof cvRender === 'function' && !document.getElementById('tab-cover').hidden) cvRender();
       g('langTr').classList.toggle('active', LANG === 'tr');
@@ -1171,7 +1200,7 @@
     const cvKickerWrap = document.getElementById('cvKickerWrap');
     const cvDrop = document.getElementById('cvDrop');
     const cvFileInput = document.getElementById('cvFileInput');
-    const cvState = { style:'s02', img:null };
+    const cvState = { style:'s02', img:null, imgURL:null, crop:null };
     const CV_SAMPLE = {
         head:   "لا سقف يحميهم.. الشتاء يضاعف معاناة نازحي غزة",
         title3l:"الشتاء يضاعف معاناة نازحي غزة",
@@ -1229,14 +1258,73 @@
     cvFileInput.addEventListener('change', e => { const f = e.target.files[0]; if (f) cvLoadBlob(f); });
 
     function cvLoadBlob(blob){
+        if (cvState.imgURL) { try { URL.revokeObjectURL(cvState.imgURL); } catch (e) {} }
         const url = URL.createObjectURL(blob);
         const im = new Image();
-        im.onload = () => { cvState.img = im; cvDrop.classList.add('hasimg'); cvDrop.textContent = t('cv_drop_ok'); cvEnsureFontsThenRender(); URL.revokeObjectURL(url); };
+        im.onload = () => {
+            cvState.img = im; cvState.imgURL = url; cvState.crop = null;
+            cvDrop.classList.add('hasimg'); cvDrop.textContent = t('cv_drop_ok');
+            cvEnsureFontsThenRender();
+            openCvCrop();
+        };
         im.src = url;
     }
 
     document.getElementById('cvImportBtn').addEventListener('click', () => requestPhotopeaImage('cover'));
     if (!inPhotopea) { const b = document.getElementById('cvImportBtn'); b.disabled = true; b.title = t('import_title_off'); }
+
+    /* --- Cover crop editor (fixed 1080x1350 = 3:4) --- */
+    const cvCropModal = document.getElementById('cvCropModal');
+    const cvCropImg = document.getElementById('cvCropImg');
+    const cvCropBox = document.getElementById('cvCropBox');
+    const cvZoom = document.getElementById('cvZoom');
+    const CV_RATIO = 1080 / 1350;   // width / height
+    let cvbW, cvbH, cvbL, cvbT, cviW, cviH;
+
+    function cvClampBox(){
+        if (cvbL < 0) cvbL = 0; if (cvbT < 0) cvbT = 0;
+        if (cvbL + cvbW > cviW) cvbL = cviW - cvbW;
+        if (cvbT + cvbH > cviH) cvbT = cviH - cvbH;
+    }
+    function cvBoxDOM(){ cvCropBox.style.width = cvbW + 'px'; cvCropBox.style.height = cvbH + 'px'; cvCropBox.style.left = cvbL + 'px'; cvCropBox.style.top = cvbT + 'px'; }
+    function cvInitCrop(){
+        cviW = cvCropImg.clientWidth; cviH = cvCropImg.clientHeight;
+        if (!cviW || !cviH) return;
+        if (cviW / cviH > CV_RATIO) { cvbH = cviH; cvbW = cvbH * CV_RATIO; } else { cvbW = cviW; cvbH = cvbW / CV_RATIO; }
+        cvbL = (cviW - cvbW) / 2; cvbT = (cviH - cvbH) / 2;
+        cvZoom.value = 0; cvBoxDOM();
+    }
+    function openCvCrop(){
+        if (!cvState.img) return;
+        cvCropImg.onload = cvInitCrop;
+        if (cvCropImg.src !== cvState.imgURL) cvCropImg.src = cvState.imgURL;
+        cvCropModal.style.display = 'flex';
+        requestAnimationFrame(() => { if (cvCropImg.complete) cvInitCrop(); });
+    }
+
+    let cvDrag = false, cvsx, cvsy, cvil, cvit;
+    cvCropBox.addEventListener('mousedown', e => { cvDrag = true; cvsx = e.clientX; cvsy = e.clientY; cvil = cvbL; cvit = cvbT; e.stopPropagation(); });
+    window.addEventListener('mousemove', e => { if (!cvDrag) return; cvbL = cvil + (e.clientX - cvsx); cvbT = cvit + (e.clientY - cvsy); cvClampBox(); cvBoxDOM(); });
+    window.addEventListener('mouseup', () => { cvDrag = false; });
+    cvZoom.addEventListener('input', e => {
+        const z = parseFloat(e.target.value), scale = 1 - z * 0.9;
+        const maxW = (cviW / cviH > CV_RATIO) ? cviH * CV_RATIO : cviW;
+        let nw = maxW * scale; if (nw < 50) nw = 50; const nh = nw / CV_RATIO;
+        const cx = cvbL + cvbW / 2, cy = cvbT + cvbH / 2;
+        cvbW = nw; cvbH = nh; cvbL = cx - nw / 2; cvbT = cy - nh / 2; cvClampBox(); cvBoxDOM();
+    });
+    document.getElementById('cvCropContainer').addEventListener('wheel', e => {
+        e.preventDefault(); let z = parseFloat(cvZoom.value) + (e.deltaY < 0 ? 1 : -1) * 0.02; z = Math.max(0, Math.min(1, z)); cvZoom.value = z; cvZoom.dispatchEvent(new Event('input'));
+    }, { passive: false });
+    document.getElementById('cvCropApply').addEventListener('click', () => {
+        const rx = cvCropImg.naturalWidth / cviW, ry = cvCropImg.naturalHeight / cviH;
+        cvState.crop = { sx: cvbL * rx, sy: cvbT * ry, sw: cvbW * rx, sh: cvbH * ry };
+        cvCropModal.style.display = 'none'; cvRender();
+    });
+    function cvCloseCrop(){ cvCropModal.style.display = 'none'; cvRender(); }
+    document.getElementById('cvCropClose').addEventListener('click', cvCloseCrop);
+    cvCropModal.addEventListener('mousedown', e => { if (e.target === cvCropModal) cvCloseCrop(); });
+    cvCanvas.addEventListener('click', () => { if (cvState.img) openCvCrop(); });
 
     function cvGradient(dir){
         const g = cvCtx.createLinearGradient(0, dir === 'top' ? 0 : 1350, 0, dir === 'top' ? 1350 : 0);
@@ -1250,10 +1338,14 @@
     }
 
     function cvDrawCover(img){
-        const W = 1080, H = 1350, ir = img.width / img.height, tr = W / H;
-        let sw, sh, sx, sy;
-        if (ir > tr) { sh = img.height; sw = sh * tr; sx = (img.width - sw) / 2; sy = 0; }
-        else { sw = img.width; sh = sw / tr; sx = 0; sy = (img.height - sh) / 2; }
+        const W = 1080, H = 1350;
+        let sx, sy, sw, sh;
+        if (cvState.crop) { sx = cvState.crop.sx; sy = cvState.crop.sy; sw = cvState.crop.sw; sh = cvState.crop.sh; }
+        else {
+            const ir = img.width / img.height, tr = W / H;
+            if (ir > tr) { sh = img.height; sw = sh * tr; sx = (img.width - sw) / 2; sy = 0; }
+            else { sw = img.width; sh = sw / tr; sx = 0; sy = (img.height - sh) / 2; }
+        }
         cvCtx.imageSmoothingEnabled = true; cvCtx.imageSmoothingQuality = 'high';
         cvCtx.drawImage(img, sx, sy, sw, sh, 0, 0, W, H);
     }
