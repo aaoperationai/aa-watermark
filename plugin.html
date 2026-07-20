@@ -123,30 +123,28 @@
 
         #thumbnailContainer {
             margin-top: 16px; display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 10px;
+            grid-template-columns: repeat(auto-fill, minmax(128px, 1fr)); gap: 12px;
         }
+        @media (max-width:600px){ #thumbnailContainer { grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; } }
         .thumb-wrapper { position: relative; width: 100%; aspect-ratio: 3/2; min-width: 0; }
         .thumb {
             width: 100%; height: 100%; object-fit: cover; border-radius: 10px;
             border: 1px solid #e5e7eb; cursor: pointer; transition: 0.25s ease;
         }
-        .thumb:hover { transform: scale(1.04); box-shadow: 0 8px 16px rgba(0,0,0,.15); }
+        .thumb:hover { box-shadow: 0 4px 12px rgba(0,0,0,.18); }
         .remove-btn {
-            position: absolute; top: -6px; right: -6px; background: #ff4d4f; color: white;
-            font-size: 12px; width: 22px; height: 22px; border-radius: 50%;
+            position: absolute; top: 4px; right: 4px; background: rgba(255,77,79,.95); color: white;
+            font-size: 11px; width: 20px; height: 20px; border-radius: 50%;
             display: flex; align-items: center; justify-content: center; cursor: pointer;
-            font-weight: bold; z-index: 2;
+            font-weight: bold; z-index: 3; line-height: 1;
         }
-        .cropped-badge {
-            position: absolute; bottom: -22px; left: 50%; transform: translateX(-50%);
-            background: #e6f4ea; color: #1e8e3e; padding: 3px 8px; border-radius: 6px;
-            font-size: 11px; font-weight: 600; white-space: nowrap;
+        .cropped-badge, .uncropped-badge {
+            position: absolute; bottom: 0; left: 0; right: 0; padding: 2px 0;
+            text-align: center; font-size: 10px; font-weight: 700; white-space: nowrap;
+            border-bottom-left-radius: 10px; border-bottom-right-radius: 10px; z-index: 2;
         }
-        .uncropped-badge {
-            position: absolute; bottom: -22px; left: 50%; transform: translateX(-50%);
-            background: #ffebe9; color: #d93025; padding: 3px 8px; border-radius: 6px;
-            font-size: 11px; font-weight: 600; white-space: nowrap;
-        }
+        .cropped-badge { background: rgba(30,142,62,.9); color: #fff; }
+        .uncropped-badge { background: rgba(217,48,37,.88); color: #fff; }
 
         #previewModal {
             display: none; position: fixed; inset: 0; backdrop-filter: blur(10px);
@@ -193,11 +191,11 @@
 
         /* numbered drag handle — grab to reorder (GIF frame order) */
         .order-chip {
-            position: absolute; top: -6px; left: -6px; z-index: 3;
-            min-width: 22px; height: 22px; padding: 0 5px; border-radius: 11px;
-            background: #2b7cff; color: #fff; font-size: 12px; font-weight: 700;
+            position: absolute; top: 4px; left: 4px; z-index: 4;
+            min-width: 20px; height: 20px; padding: 0 5px; border-radius: 10px;
+            background: rgba(43,124,255,.95); color: #fff; font-size: 11px; font-weight: 700;
             display: flex; align-items: center; justify-content: center; gap: 3px;
-            cursor: grab; user-select: none; box-shadow: 0 2px 6px rgba(43,124,255,.4);
+            cursor: grab; user-select: none; box-shadow: 0 2px 6px rgba(0,0,0,.25);
         }
         .order-chip:active { cursor: grabbing; }
         .order-chip .grip { font-size: 10px; opacity: .85; line-height: 1; }
