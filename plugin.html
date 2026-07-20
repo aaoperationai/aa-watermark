@@ -283,6 +283,17 @@
         #cvVideoSec[hidden] { display:none; }
         #cvVidSize { padding:8px; border:1px solid #d6dae6; border-radius:8px; font-family:inherit; font-size:13px; background:#fff; color:#111827; }
         #cvVidCanvas { width:100%; max-width:280px; display:block; margin:12px auto 0; border-radius:10px; border:1px solid #e5e7eb; background:#111; }
+        /* narrow (single-column): previews on top, compact side-by-side */
+        .cv-grid { display:flex; flex-direction:column; }
+        .cv-right { order:-1; margin-bottom:16px; }
+        .cv-preview-sticky { flex-direction:row; flex-wrap:wrap; justify-content:center; gap:14px; }
+        #cvPrevSq, #cvPrevPt { max-width:150px; }
+        @media (min-width:760px){
+            .cv-grid { display:grid; grid-template-columns: minmax(0,1fr) 380px; gap:20px; align-items:start; }
+            .cv-right { order:0; margin-bottom:0; position:sticky; top:8px; }
+            .cv-preview-sticky { flex-direction:column; flex-wrap:nowrap; gap:18px; }
+            #cvPrevSq, #cvPrevPt { max-width:300px; }
+        }
     </style>
 </head>
 
