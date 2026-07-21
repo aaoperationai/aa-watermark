@@ -309,6 +309,7 @@
         #cvVidTotal { text-align:center; }
         .cv-subhead { font-size:11px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#9aa1b1; margin:16px 0 8px; padding-top:14px; border-top:1px solid #eef0f5; }
         #cvVidTrimBlock[hidden] { display:none; }
+        #cvCardTextWrap[hidden] { display:none; }
     </style>
 </head>
 
@@ -400,6 +401,13 @@
             <div id="cvSourceWrap" hidden>
               <div class="cv-label" id="cvLblSource">Source</div>
               <input type="text" id="cvSource" placeholder="مصدر طبي للأناضول">
+            </div>
+            <div id="cvCardTextWrap" hidden>
+              <div class="cv-slider-row" style="margin-top:10px">
+                <span class="cv-slim" id="cvCardTextLbl">Text size</span>
+                <input type="range" id="cvCardTextSize" min="60" max="130" value="100" style="flex:1">
+                <span class="cv-slim" id="cvCardTextVal">100%</span>
+              </div>
             </div>
             <div class="cv-label" id="cvLblHeadline">Headline</div>
             <textarea id="cvHeadline" rows="2" placeholder="اكتب عنوان الغلاف هنا"></textarea>
@@ -724,7 +732,7 @@
       if (!cvState.img) g('cvDrop').textContent = t('cv_drop');
       g('cvLblStyle').textContent = t('cv_style');
       g('cvS02').textContent = t('cv_s02'); g('cvS01').textContent = t('cv_s01'); g('cvS3L').textContent = t('cv_s3l');
-      g('cvLblKicker').textContent = t('cv_kicker'); g('cvLblSource').textContent = t('cv_source'); g('cvLblHeadline').textContent = t('cv_headline');
+      g('cvLblKicker').textContent = t('cv_kicker'); g('cvLblSource').textContent = t('cv_source'); if(document.getElementById('cvCardTextLbl')) g('cvCardTextLbl').textContent = t('cv_vid_textsize'); g('cvLblHeadline').textContent = t('cv_headline');
       g('cvLblOpen').textContent = t('cv_open'); g('cvHint').textContent = t('cv_hint');
       g('cvExportBtn').textContent = t('cv_export');
       g('cvLblAllBold').textContent = t('cv_allbold');
@@ -1408,6 +1416,7 @@
             document.getElementById('cvSecText').textContent = t('cv_sec_text');
             cvKickerWrap.hidden = (cvState.style !== 's3l');
             cvSourceWrap.hidden = true;
+            document.getElementById('cvCardTextWrap').hidden = true;
             cvSetActiveStyleBtn();
             document.getElementById('cvExportBtn').disabled = !cvState.img;
         } else if (which === 'b'){
@@ -1416,6 +1425,7 @@
             document.getElementById('cvSecText').textContent = t('cv_sec_brk');
             cvKickerWrap.hidden = true;
             cvSourceWrap.hidden = false;
+            document.getElementById('cvCardTextWrap').hidden = false;
             document.getElementById('cvExportBtn').disabled = false;
         }
         cvApplyBrkMode(which === 'b');
@@ -1475,6 +1485,7 @@
     cvHeadlineEl.addEventListener('input', cvRenderAll);
     cvKickerEl.addEventListener('input', cvRenderAll);
     cvSourceEl.addEventListener('input', cvRenderAll);
+    document.getElementById('cvCardTextSize').addEventListener('input', e => { document.getElementById('cvCardTextVal').textContent = e.target.value + '%'; cvRenderAll(); });
     document.getElementById('cvAllBold').addEventListener('change', cvRenderAll);
 
     // photo input
@@ -1707,6 +1718,7 @@
         }
     }
 
+    function cvCardTextMul(){ const el = document.getElementById('cvCardTextSize'); return el ? (parseInt(el.value, 10) || 100) / 100 : 1; }
     // Draw the full card into one size
     function cvRenderInto(size){
         cvCtx = size.canvas.getContext('2d'); CVW = size.W; CVH = size.H;
@@ -1764,14 +1776,15 @@
             tf.lines.forEach((ln, i) => { cvDrawLine(ln, cx, ty + i * tf.lh, tf.fs, allBold); });
         } else {  // brk
             const rx = CVW - 71, bw = 900;
-            const f = cvWrapTokens(tokens, bw, 80, 44, allBold, 4);
+            const cmul = cvCardTextMul();
+            const f = cvWrapTokens(tokens, bw, Math.round(80 * cmul), Math.round(44 * cmul), allBold, 4);
             const nL = Math.max(f.lines.length, 1);
             const lastBaseline = CVH - 200;
             const firstY = lastBaseline - (nL - 1) * f.lh;
             f.lines.forEach((ln, i) => cvDrawLineRightEdge(ln, rx, firstY + i * f.lh, f.fs, allBold));
             cvBadge(rx, firstY - f.fs - 28);
             const src = (demo ? CV_SAMPLE.brkSource : cvSourceEl.value).trim();
-            if (src) { cvCtx.font = '700 34px HNArabic'; cvCtx.fillStyle = '#fff'; cvCtx.textAlign = 'right'; cvCtx.direction = 'rtl'; cvCtx.textBaseline = 'alphabetic'; cvCtx.fillText(src, rx, CVH - 135); }
+            if (src) { cvCtx.font = '700 ' + Math.round(34 * cmul) + 'px HNArabic'; cvCtx.fillStyle = '#fff'; cvCtx.textAlign = 'right'; cvCtx.direction = 'rtl'; cvCtx.textBaseline = 'alphabetic'; cvCtx.fillText(src, rx, CVH - 135); }
         }
 
         if (cvLogo.complete && cvLogo.naturalWidth) cvCtx.drawImage(cvLogo, 51, CVH - 51 - 63, 63, 63);
