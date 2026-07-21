@@ -307,6 +307,8 @@
         .cv-seg-s { margin-bottom:0; }
         .cv-seg-h { resize:vertical; }
         #cvVidTotal { text-align:center; }
+        .cv-subhead { font-size:11px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#9aa1b1; margin:16px 0 8px; padding-top:14px; border-top:1px solid #eef0f5; }
+        #cvVidTrimBlock[hidden] { display:none; }
     </style>
 </head>
 
@@ -423,9 +425,6 @@
           <div class="cv-section" id="cvVideoSec" hidden>
             <div class="cv-sec-title" id="cvVidTitle">Video (experimental)</div>
             <video id="cvVideoEl" playsinline muted style="display:none"></video>
-            <input type="file" id="cvVidInput" accept="video/*" style="display:none">
-            <button id="cvVidChoose" class="cv-mini-btn" style="margin-top:0">Choose video</button>
-            <span id="cvVidName" class="cv-slim" style="margin-left:8px;color:#556"></span>
 
             <canvas id="cvVidCanvas" width="1080" height="1920"></canvas>
             <div style="text-align:center;margin-top:8px">
@@ -433,23 +432,36 @@
               <button id="cvVidReplay" class="cv-mini-btn" disabled>Replay</button>
             </div>
 
-            <div class="cv-label" id="cvVidTrimLbl" style="margin-top:14px">Trim</div>
-            <input type="range" id="cvVidStart" min="0" max="100" value="0" step="0.01" style="width:100%;margin:0">
-            <input type="range" id="cvVidEnd" min="0" max="100" value="100" step="0.01" style="width:100%;margin:4px 0 0">
-            <div class="cv-slim" id="cvVidTrimInfo" style="text-align:center;margin-top:4px">0:00 – 0:00</div>
+            <div class="cv-subhead" id="cvVidGrpSource">Source</div>
+            <input type="file" id="cvVidInput" accept="video/*" style="display:none">
+            <button id="cvVidChoose" class="cv-mini-btn" style="margin-top:0">Choose video</button>
+            <span id="cvVidName" class="cv-slim" style="margin-left:8px;color:#556"></span>
+            <div class="cv-slim" id="cvVidBgHint" style="margin-top:6px">No video = red background</div>
+            <div id="cvVidTrimBlock" hidden>
+              <div class="cv-label" id="cvVidTrimLbl" style="margin-top:12px">Trim</div>
+              <input type="range" id="cvVidStart" min="0" max="100" value="0" step="0.01" style="width:100%;margin:0">
+              <input type="range" id="cvVidEnd" min="0" max="100" value="100" step="0.01" style="width:100%;margin:4px 0 0">
+              <div class="cv-slim" id="cvVidTrimInfo" style="text-align:center;margin-top:4px">0:00 – 0:00</div>
+            </div>
 
-            <div class="cv-slider-row" style="margin-top:12px">
+            <div class="cv-subhead" id="cvVidGrpOutput">Output</div>
+            <div class="cv-slider-row">
               <span class="cv-slim" id="cvVidSizeLbl">Size</span>
               <select id="cvVidSize" style="flex:1"><option value="reel">Reels/Stories · 1080×1920</option><option value="sq">X · 1080×1080</option><option value="fe">Feed · 1080×1350</option></select>
             </div>
+            <div class="cv-slider-row" style="margin-top:8px">
+              <span class="cv-slim" id="cvVidTextLbl">Text size</span>
+              <input type="range" id="cvVidTextSize" min="60" max="130" value="85" style="flex:1">
+              <span class="cv-slim" id="cvVidTextVal">85%</span>
+            </div>
             <label class="checkbox-container" style="margin-top:10px"><input type="checkbox" id="cvVidMotion" checked> <span id="cvVidMotionLbl">Motion</span></label>
 
-            <div class="cv-label" id="cvVidSegLbl" style="margin-top:14px">Breaking segments</div>
+            <div class="cv-subhead" id="cvVidSegLbl">Breaking segments</div>
             <div id="cvSegList"></div>
             <button id="cvSegAdd" class="cv-mini-btn" style="margin-top:8px">+ Add breaking</button>
             <div id="cvVidTotal" class="cv-slim" style="margin-top:8px"></div>
 
-            <div class="cv-label" id="cvVidAudioLbl" style="margin-top:14px">Audio</div>
+            <div class="cv-subhead" id="cvVidAudioLbl">Audio</div>
             <select id="cvVidAudio" style="width:100%"></select>
             <div class="cv-slider-row" style="margin-top:8px">
               <span class="cv-slim" id="cvVidModeLbl">Mode</span>
@@ -461,7 +473,7 @@
               <span class="cv-slim" id="cvVidVolVal">80%</span>
             </div>
 
-            <button id="cvVidExport" style="margin-top:14px" disabled>Export video</button>
+            <button id="cvVidExport" style="margin-top:16px" disabled>Export video</button>
             <div id="cvVidStatus" style="margin-top:10px;font-size:12px;color:#6b7280;text-align:center;min-height:16px;"></div>
           </div>
 
@@ -604,7 +616,7 @@
         cv_sec_brk:"Son dakika metni",
         cv_vid_title:"Video (deneysel)", cv_vid_choose:"Video seç", cv_vid_size:"Boyut", cv_vid_motion:"Hareket", cv_vid_play:"Oynat", cv_vid_pause:"Duraklat", cv_vid_export:"Videoyu dışa aktar", cv_vid_rec:"Kaydediliyor…", cv_vid_done:"Video indirildi ✓", cv_vid_unsup:"Bu tarayıcı video dışa aktarmayı desteklemiyor",
         cv_mode_card:"Kart", cv_mode_video:"Video",
-        cv_vid_seg:"Son dakika", cv_vid_add:"+ Son dakika ekle", cv_vid_seglbl:"Son dakika metinleri", cv_vid_total:(n,s)=>`Toplam: ${s}s (${n} son dakika)`,
+        cv_vid_seg:"Son dakika", cv_vid_add:"+ Son dakika ekle", cv_vid_seglbl:"Son dakika metinleri", cv_vid_grp_source:"Kaynak", cv_vid_grp_output:"Çıktı", cv_vid_textsize:"Metin boyutu", cv_vid_bghint:"Video yok = kırmızı arka plan", cv_vid_total:(n,s)=>`Toplam: ${s}s (${n} son dakika)`,
         cv_vid_replay:"Tekrar", cv_vid_trim:"Kırp (süre)", cv_vid_audio:"Ses", cv_vid_mode:"Mod", cv_vid_mix:"Karıştır", cv_vid_replace:"Değiştir", cv_vid_music:"Müzik", cv_vid_none:"— (video sesi)", cv_vid_audioerr:"Ses dosyası bulunamadı",
         cv_drop:"Kapak fotoğrafını sürükleyin veya tıklayın",
         cv_drop_ok:"Kapak fotoğrafı hazır ✓",
@@ -661,7 +673,7 @@
         cv_sec_brk:"Breaking text",
         cv_vid_title:"Video (experimental)", cv_vid_choose:"Choose video", cv_vid_size:"Size", cv_vid_motion:"Motion", cv_vid_play:"Play", cv_vid_pause:"Pause", cv_vid_export:"Export video", cv_vid_rec:"Recording…", cv_vid_done:"Video downloaded ✓", cv_vid_unsup:"This browser cannot export video",
         cv_mode_card:"Card", cv_mode_video:"Video",
-        cv_vid_seg:"Breaking", cv_vid_add:"+ Add breaking", cv_vid_seglbl:"Breaking segments", cv_vid_total:(n,s)=>`Total: ${s}s (${n} breaking)`,
+        cv_vid_seg:"Breaking", cv_vid_add:"+ Add breaking", cv_vid_seglbl:"Breaking segments", cv_vid_grp_source:"Source", cv_vid_grp_output:"Output", cv_vid_textsize:"Text size", cv_vid_bghint:"No video = red background", cv_vid_total:(n,s)=>`Total: ${s}s (${n} breaking)`,
         cv_vid_replay:"Replay", cv_vid_trim:"Trim", cv_vid_audio:"Audio", cv_vid_mode:"Mode", cv_vid_mix:"Mix", cv_vid_replace:"Replace", cv_vid_music:"Music", cv_vid_none:"— (video audio)", cv_vid_audioerr:"Audio file not found",
         cv_drop:"Drag a cover photo, or click",
         cv_drop_ok:"Cover photo ready ✓",
@@ -720,7 +732,7 @@
       g('cvCropApply').textContent = t('cv_crop');
       g('cvLblGrad').textContent = t('cv_grad'); g('cvLblOpacity').textContent = t('cv_darkness'); g('cvLblReach').textContent = t('cv_reach');
       if (document.getElementById('cvModeCard')) { g('cvModeCard').textContent = t('cv_mode_card'); g('cvModeVideo').textContent = t('cv_mode_video'); }
-      if (document.getElementById('cvVidTitle')) { g('cvVidTitle').textContent = t('cv_vid_title'); g('cvVidChoose').textContent = t('cv_vid_choose'); g('cvVidSizeLbl').textContent = t('cv_vid_size'); g('cvVidMotionLbl').textContent = t('cv_vid_motion'); g('cvVidExport').textContent = t('cv_vid_export'); if(!cvVidState || !cvVidState.playing) g('cvVidPlay').textContent = t('cv_vid_play'); g('cvVidReplay').textContent = t('cv_vid_replay'); g('cvVidTrimLbl').textContent = t('cv_vid_trim'); g('cvVidAudioLbl').textContent = t('cv_vid_audio'); g('cvVidModeLbl').textContent = t('cv_vid_mode'); g('cvVidVolLbl').textContent = t('cv_vid_music'); g('cvVidAudioMode').options[0].text = t('cv_vid_mix'); g('cvVidAudioMode').options[1].text = t('cv_vid_replace'); if(typeof cvPopulateAudio==='function') cvPopulateAudio(); g('cvVidSegLbl').textContent = t('cv_vid_seglbl'); g('cvSegAdd').textContent = t('cv_vid_add'); if(typeof cvRenderSegs==='function') cvRenderSegs(); }
+      if (document.getElementById('cvVidTitle')) { g('cvVidTitle').textContent = t('cv_vid_title'); g('cvVidChoose').textContent = t('cv_vid_choose'); g('cvVidSizeLbl').textContent = t('cv_vid_size'); g('cvVidMotionLbl').textContent = t('cv_vid_motion'); g('cvVidExport').textContent = t('cv_vid_export'); if(!cvVidState || !cvVidState.playing) g('cvVidPlay').textContent = t('cv_vid_play'); g('cvVidReplay').textContent = t('cv_vid_replay'); g('cvVidTrimLbl').textContent = t('cv_vid_trim'); g('cvVidAudioLbl').textContent = t('cv_vid_audio'); g('cvVidModeLbl').textContent = t('cv_vid_mode'); g('cvVidVolLbl').textContent = t('cv_vid_music'); g('cvVidAudioMode').options[0].text = t('cv_vid_mix'); g('cvVidAudioMode').options[1].text = t('cv_vid_replace'); if(typeof cvPopulateAudio==='function') cvPopulateAudio(); g('cvVidSegLbl').textContent = t('cv_vid_seglbl'); g('cvSegAdd').textContent = t('cv_vid_add'); g('cvVidGrpSource').textContent = t('cv_vid_grp_source'); g('cvVidGrpOutput').textContent = t('cv_vid_grp_output'); g('cvVidTextLbl').textContent = t('cv_vid_textsize'); g('cvVidBgHint').textContent = t('cv_vid_bghint'); if(typeof cvRenderSegs==='function') cvRenderSegs(); }
       g('cvSecPhoto').textContent = t('cv_sec_photo'); g('cvSecText').textContent = (document.getElementById('tabB') && document.getElementById('tabB').classList.contains('active')) ? t('cv_sec_brk') : t('cv_sec_text'); g('cvRecropSq').textContent = t('cv_recrop'); g('cvRecropPt').textContent = t('cv_recrop');
       if (typeof cvUpdateWordCount === 'function') cvUpdateWordCount();
       if (typeof cvRender === 'function' && !document.getElementById('tab-cover').hidden) cvRender();
@@ -1811,6 +1823,7 @@
     ];
     function cvVidStatus(m){ const el=document.getElementById('cvVidStatus'); if(el) el.textContent=m||''; }
     function cvVidSizeObj(){ const v = document.getElementById('cvVidSize').value; if (v==='sq') return {W:1080,H:1080}; if (v==='fe') return {W:1080,H:1350}; return {W:1080,H:1920}; }
+    function cvVidTextMul(){ return (parseInt(document.getElementById('cvVidTextSize').value, 10) || 100) / 100; }
     function cvFmt(s){ s=Math.max(0,s||0); const m=Math.floor(s/60), x=Math.floor(s%60); return m+':'+(x<10?'0':'')+x; }
     function cvVidStop(){ cvVidState.playing=false; cancelAnimationFrame(cvVidState.raf); try{ cvVideoEl.pause(); }catch(e){} const b=document.getElementById('cvVidPlay'); if(b) b.textContent=t('cv_vid_play'); }
 
@@ -1863,7 +1876,8 @@
             const src = (demo ? CV_SAMPLE.brkSource : (srcText || '')).trim();
             const tokens = cvParseTokens(head);
             const rx = W - 71, bw = 900;
-            const f = cvWrapTokens(tokens, bw, 80, 44, allBold, 4);
+            const mul = (typeof cvVidTextMul === 'function') ? cvVidTextMul() : 0.85;
+            const f = cvWrapTokens(tokens, bw, Math.round(80 * mul), Math.round(44 * mul), allBold, 4);
             const nL = Math.max(f.lines.length, 1);
             const firstY = (H - 200) - (nL - 1) * f.lh;
             const easeOut = x => 1 - Math.pow(1 - Math.max(0, Math.min(1, x)), 3);
@@ -1887,7 +1901,7 @@
             if (src){
                 const a = easeOut(seg(0.30 + nL * 0.12 + 0.05, 0.35));
                 ctx.save(); ctx.globalAlpha = a * outro;
-                ctx.font = '700 34px HNArabic'; ctx.fillStyle = '#fff'; ctx.textAlign = 'right'; ctx.direction = 'rtl'; ctx.textBaseline = 'alphabetic';
+                ctx.font = '700 ' + Math.round(34 * mul) + 'px HNArabic'; ctx.fillStyle = '#fff'; ctx.textAlign = 'right'; ctx.direction = 'rtl'; ctx.textBaseline = 'alphabetic';
                 ctx.fillText(src, rx, H - 135);
                 ctx.restore();
             }
@@ -1941,6 +1955,7 @@
     document.getElementById('cvVidStart').addEventListener('input', cvVidUpdateTrim);
     document.getElementById('cvVidEnd').addEventListener('input', cvVidUpdateTrim);
     document.getElementById('cvVidVol').addEventListener('input', e => { document.getElementById('cvVidVolVal').textContent = e.target.value + '%'; });
+    document.getElementById('cvVidTextSize').addEventListener('input', e => { document.getElementById('cvVidTextVal').textContent = e.target.value + '%'; cvVidPreviewStatic(); });
 
     document.getElementById('cvVidInput').addEventListener('change', e => {
         const file = e.target.files[0]; if (!file) return;
@@ -1951,6 +1966,7 @@
             cvVidState.loaded = true; cvVidState.dur = cvVideoEl.duration || 0;
             cvVidState.start = 0; cvVidState.end = cvVidState.dur;
             document.getElementById('cvVidName').textContent = file.name;
+            const tb = document.getElementById('cvVidTrimBlock'); if (tb) tb.hidden = false;
             const st = document.getElementById('cvVidStart'), en = document.getElementById('cvVidEnd');
             st.max = cvVidState.dur; en.max = cvVidState.dur; st.value = 0; en.value = cvVidState.dur;
             cvVidUpdateTrim();
