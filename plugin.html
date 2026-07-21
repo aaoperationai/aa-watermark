@@ -299,6 +299,14 @@
         .cv-mode-btn { flex:1; margin:0; padding:9px; border-radius:10px; border:1px solid #d6dae6; background:#fff; font-family:inherit; font-size:13px; font-weight:700; color:#556; cursor:pointer; transition:.15s ease; }
         .cv-mode-btn:hover { background:#eef4ff; transform:none; box-shadow:none; }
         .cv-mode-btn.active { background:#111827; color:#fff; border-color:#111827; }
+        .cv-seg { border:1px solid #e9ecf3; border-radius:10px; padding:10px; margin-bottom:8px; background:#fafbfe; }
+        .cv-seg-head { display:flex; align-items:center; justify-content:space-between; font-size:12px; font-weight:700; color:#556; margin-bottom:6px; }
+        .cv-seg-dur { color:#2b7cff; }
+        .cv-seg-del { margin:0; width:22px; height:22px; padding:0; border-radius:50%; background:rgba(255,77,79,.9); color:#fff; font-size:11px; box-shadow:none; line-height:1; }
+        .cv-seg-h, .cv-seg-s { width:100%; padding:8px 10px; border:1px solid #e5e7eb; border-radius:8px; font-family:'HNArabic','Inter',sans-serif; font-size:14px; direction:rtl; box-sizing:border-box; margin-bottom:6px; }
+        .cv-seg-s { margin-bottom:0; }
+        .cv-seg-h { resize:vertical; }
+        #cvVidTotal { text-align:center; }
     </style>
 </head>
 
@@ -376,7 +384,7 @@
             <input type="file" id="cvFileInput" accept="image/*" style="display:none">
           </div>
 
-          <div class="cv-section">
+          <div class="cv-section" id="cvTextSec">
             <div class="cv-sec-title" id="cvSecText">Style & text</div>
             <div class="cv-styles" id="cvStylesRow">
               <button class="cv-style" data-style="s01" id="cvS01">Style 01</button>
@@ -435,6 +443,11 @@
               <select id="cvVidSize" style="flex:1"><option value="pt">Instagram · 1080×1440</option><option value="sq">X · 1080×1080</option></select>
             </div>
             <label class="checkbox-container" style="margin-top:10px"><input type="checkbox" id="cvVidMotion" checked> <span id="cvVidMotionLbl">Motion</span></label>
+
+            <div class="cv-label" id="cvVidSegLbl" style="margin-top:14px">Breaking segments</div>
+            <div id="cvSegList"></div>
+            <button id="cvSegAdd" class="cv-mini-btn" style="margin-top:8px">+ Add breaking</button>
+            <div id="cvVidTotal" class="cv-slim" style="margin-top:8px"></div>
 
             <div class="cv-label" id="cvVidAudioLbl" style="margin-top:14px">Audio</div>
             <select id="cvVidAudio" style="width:100%"></select>
@@ -591,6 +604,7 @@
         cv_sec_brk:"Son dakika metni",
         cv_vid_title:"Video (deneysel)", cv_vid_choose:"Video seç", cv_vid_size:"Boyut", cv_vid_motion:"Hareket", cv_vid_play:"Oynat", cv_vid_pause:"Duraklat", cv_vid_export:"Videoyu dışa aktar", cv_vid_rec:"Kaydediliyor…", cv_vid_done:"Video indirildi ✓", cv_vid_unsup:"Bu tarayıcı video dışa aktarmayı desteklemiyor",
         cv_mode_card:"Kart", cv_mode_video:"Video",
+        cv_vid_seg:"Son dakika", cv_vid_add:"+ Son dakika ekle", cv_vid_seglbl:"Son dakika metinleri", cv_vid_total:(n,s)=>`Toplam: ${s}s (${n} son dakika)`,
         cv_vid_replay:"Tekrar", cv_vid_trim:"Kırp (süre)", cv_vid_audio:"Ses", cv_vid_mode:"Mod", cv_vid_mix:"Karıştır", cv_vid_replace:"Değiştir", cv_vid_music:"Müzik", cv_vid_none:"— (video sesi)", cv_vid_audioerr:"Ses dosyası bulunamadı",
         cv_drop:"Kapak fotoğrafını sürükleyin veya tıklayın",
         cv_drop_ok:"Kapak fotoğrafı hazır ✓",
@@ -647,6 +661,7 @@
         cv_sec_brk:"Breaking text",
         cv_vid_title:"Video (experimental)", cv_vid_choose:"Choose video", cv_vid_size:"Size", cv_vid_motion:"Motion", cv_vid_play:"Play", cv_vid_pause:"Pause", cv_vid_export:"Export video", cv_vid_rec:"Recording…", cv_vid_done:"Video downloaded ✓", cv_vid_unsup:"This browser cannot export video",
         cv_mode_card:"Card", cv_mode_video:"Video",
+        cv_vid_seg:"Breaking", cv_vid_add:"+ Add breaking", cv_vid_seglbl:"Breaking segments", cv_vid_total:(n,s)=>`Total: ${s}s (${n} breaking)`,
         cv_vid_replay:"Replay", cv_vid_trim:"Trim", cv_vid_audio:"Audio", cv_vid_mode:"Mode", cv_vid_mix:"Mix", cv_vid_replace:"Replace", cv_vid_music:"Music", cv_vid_none:"— (video audio)", cv_vid_audioerr:"Audio file not found",
         cv_drop:"Drag a cover photo, or click",
         cv_drop_ok:"Cover photo ready ✓",
@@ -705,7 +720,7 @@
       g('cvCropApply').textContent = t('cv_crop');
       g('cvLblGrad').textContent = t('cv_grad'); g('cvLblOpacity').textContent = t('cv_darkness'); g('cvLblReach').textContent = t('cv_reach');
       if (document.getElementById('cvModeCard')) { g('cvModeCard').textContent = t('cv_mode_card'); g('cvModeVideo').textContent = t('cv_mode_video'); }
-      if (document.getElementById('cvVidTitle')) { g('cvVidTitle').textContent = t('cv_vid_title'); g('cvVidChoose').textContent = t('cv_vid_choose'); g('cvVidSizeLbl').textContent = t('cv_vid_size'); g('cvVidMotionLbl').textContent = t('cv_vid_motion'); g('cvVidExport').textContent = t('cv_vid_export'); if(!cvVidState || !cvVidState.playing) g('cvVidPlay').textContent = t('cv_vid_play'); g('cvVidReplay').textContent = t('cv_vid_replay'); g('cvVidTrimLbl').textContent = t('cv_vid_trim'); g('cvVidAudioLbl').textContent = t('cv_vid_audio'); g('cvVidModeLbl').textContent = t('cv_vid_mode'); g('cvVidVolLbl').textContent = t('cv_vid_music'); g('cvVidAudioMode').options[0].text = t('cv_vid_mix'); g('cvVidAudioMode').options[1].text = t('cv_vid_replace'); if(typeof cvPopulateAudio==='function') cvPopulateAudio(); }
+      if (document.getElementById('cvVidTitle')) { g('cvVidTitle').textContent = t('cv_vid_title'); g('cvVidChoose').textContent = t('cv_vid_choose'); g('cvVidSizeLbl').textContent = t('cv_vid_size'); g('cvVidMotionLbl').textContent = t('cv_vid_motion'); g('cvVidExport').textContent = t('cv_vid_export'); if(!cvVidState || !cvVidState.playing) g('cvVidPlay').textContent = t('cv_vid_play'); g('cvVidReplay').textContent = t('cv_vid_replay'); g('cvVidTrimLbl').textContent = t('cv_vid_trim'); g('cvVidAudioLbl').textContent = t('cv_vid_audio'); g('cvVidModeLbl').textContent = t('cv_vid_mode'); g('cvVidVolLbl').textContent = t('cv_vid_music'); g('cvVidAudioMode').options[0].text = t('cv_vid_mix'); g('cvVidAudioMode').options[1].text = t('cv_vid_replace'); if(typeof cvPopulateAudio==='function') cvPopulateAudio(); g('cvVidSegLbl').textContent = t('cv_vid_seglbl'); g('cvSegAdd').textContent = t('cv_vid_add'); if(typeof cvRenderSegs==='function') cvRenderSegs(); }
       g('cvSecPhoto').textContent = t('cv_sec_photo'); g('cvSecText').textContent = (document.getElementById('tabB') && document.getElementById('tabB').classList.contains('active')) ? t('cv_sec_brk') : t('cv_sec_text'); g('cvRecropSq').textContent = t('cv_recrop'); g('cvRecropPt').textContent = t('cv_recrop');
       if (typeof cvUpdateWordCount === 'function') cvUpdateWordCount();
       if (typeof cvRender === 'function' && !document.getElementById('tab-cover').hidden) cvRender();
@@ -1405,8 +1420,16 @@
         const set = (id, hide) => { const el = document.getElementById(id); if (el) el.hidden = hide; };
         set('cvPhotoSec', vidMode);
         set('cvExportSec', vidMode);
+        set('cvTextSec', vidMode);
         const right = document.querySelector('.cv-right'); if (right) right.hidden = vidMode;
         set('cvVideoSec', !vidMode);
+        if (vidMode){
+            document.getElementById('cvVidPlay').disabled = false;
+            document.getElementById('cvVidReplay').disabled = false;
+            document.getElementById('cvVidExport').disabled = false;
+            if (typeof cvRenderSegs === 'function') cvRenderSegs();
+            if (typeof cvVidPreviewStatic === 'function') cvVidPreviewStatic();
+        }
         if (!vidMode && typeof cvVidStop === 'function') cvVidStop();
     }
     if (!cvVideoSupported){ const mv = document.getElementById('cvModeVideo'); if (mv) mv.style.display = 'none'; cvBrkMode = 'card'; }
@@ -1798,17 +1821,46 @@
     }
     cvPopulateAudio();
 
-    // animated breaking overlay onto any ctx/size at RELATIVE time trel within seglen
-    function cvDrawBrkVideoOverlay(ctx, W, H, trel, seglen, motion){
+    // ===== Multi-segment breaking video (each 7–10s auto) + color-bg support =====
+    function cvVidHasVideo(){ return cvVidState.loaded && cvVideoEl.videoWidth > 0; }
+    let cvSegments = [{ headline:'', source:'' }];
+    let cvVidClock = 0;
+    function cvSegDur(seg){ const n = cvParseTokens((seg && seg.headline) || '').length; return Math.max(7, Math.min(10, 7 + Math.max(0, n - 8) * 0.3)); }
+    function cvSegTimeline(){ let ts = 0; const arr = []; cvSegments.forEach(s => { const d = cvSegDur(s); arr.push({ start: ts, end: ts + d, dur: d, seg: s }); ts += d; }); return { arr, total: ts }; }
+
+    function cvVidUpdateTotal(){ const el = document.getElementById('cvVidTotal'); if (!el) return; const tl = cvSegTimeline(); el.textContent = t('cv_vid_total')(cvSegments.length, Math.round(tl.total)); }
+    function cvRenderSegs(){
+        const list = document.getElementById('cvSegList'); if (!list) return;
+        list.innerHTML = '';
+        cvSegments.forEach((s, idx) => {
+            const row = document.createElement('div'); row.className = 'cv-seg';
+            const head = document.createElement('div'); head.className = 'cv-seg-head';
+            const nm = document.createElement('span'); nm.textContent = t('cv_vid_seg') + ' ' + (idx + 1);
+            const du = document.createElement('span'); du.className = 'cv-seg-dur'; du.textContent = cvSegDur(s).toFixed(0) + 's';
+            head.appendChild(nm); head.appendChild(du);
+            if (cvSegments.length > 1){ const del = document.createElement('button'); del.className = 'cv-seg-del'; del.innerHTML = '✕'; del.addEventListener('click', () => { cvSegments.splice(idx, 1); cvRenderSegs(); cvVidPreviewStatic(); }); head.appendChild(del); }
+            const ta = document.createElement('textarea'); ta.className = 'cv-seg-h'; ta.rows = 2; ta.dir = 'rtl'; ta.placeholder = t('cv_headline'); ta.value = s.headline;
+            const inp = document.createElement('input'); inp.className = 'cv-seg-s'; inp.dir = 'rtl'; inp.placeholder = t('cv_source'); inp.value = s.source;
+            ta.addEventListener('input', () => { s.headline = ta.value; du.textContent = cvSegDur(s).toFixed(0) + 's'; cvVidUpdateTotal(); cvVidPreviewStatic(); });
+            inp.addEventListener('input', () => { s.source = inp.value; cvVidPreviewStatic(); });
+            row.appendChild(head); row.appendChild(ta); row.appendChild(inp);
+            list.appendChild(row);
+        });
+        cvVidUpdateTotal();
+    }
+    document.getElementById('cvSegAdd').addEventListener('click', () => { if (cvSegments.length >= 8) return; cvSegments.push({ headline:'', source:'' }); cvRenderSegs(); cvVidPreviewStatic(); });
+
+    // animated breaking overlay for one segment (RTL, motion, fade in/out within seglen)
+    function cvDrawBrkVideoOverlay(ctx, W, H, trel, seglen, motion, headText, srcText, withGradient){
         const prev = cvCtx, pw = CVW, ph = CVH;
         cvCtx = ctx; CVW = W; CVH = H;
         try {
-            const gp = cvGradParams(); cvGradient('bottom', gp.op, gp.reach);
+            if (withGradient){ const gp = cvGradParams(); cvGradient('bottom', gp.op, gp.reach); }
             const allBold = document.getElementById('cvAllBold').checked;
-            const demo = (cvHeadlineEl.value.trim() === '');
-            const headText = demo ? CV_SAMPLE.brk : cvHeadlineEl.value;
-            const srcText = (demo ? CV_SAMPLE.brkSource : cvSourceEl.value).trim();
-            const tokens = cvParseTokens(headText);
+            const demo = !((headText || '').trim());
+            const head = demo ? CV_SAMPLE.brk : headText;
+            const src = (demo ? CV_SAMPLE.brkSource : (srcText || '')).trim();
+            const tokens = cvParseTokens(head);
             const rx = W - 71, bw = 900;
             const f = cvWrapTokens(tokens, bw, 80, 44, allBold, 4);
             const nL = Math.max(f.lines.length, 1);
@@ -1816,7 +1868,7 @@
             const easeOut = x => 1 - Math.pow(1 - Math.max(0, Math.min(1, x)), 3);
             const seg = (a, l) => motion ? Math.max(0, Math.min(1, (trel - a) / l)) : 1;
             let outro = 1;
-            if (motion && seglen > 0 && trel > seglen - 0.4) outro = Math.max(0, (seglen - trel) / 0.4);
+            if (motion && seglen > 0 && trel > seglen - 0.5) outro = Math.max(0, (seglen - trel) / 0.5);
             const bA = easeOut(seg(0, 0.35));
             const pulse = motion ? (1 + 0.05 * Math.max(0, Math.sin((trel - 0.35) * Math.PI * 2.2))) : 1;
             const bY = firstY - f.fs - 28;
@@ -1831,25 +1883,47 @@
                 cvDrawLineRightEdge(ln, rx, firstY + i * f.lh + dy, f.fs, allBold);
                 ctx.restore();
             });
-            if (srcText){
+            if (src){
                 const a = easeOut(seg(0.30 + nL * 0.12 + 0.05, 0.35));
                 ctx.save(); ctx.globalAlpha = a * outro;
                 ctx.font = '700 34px HNArabic'; ctx.fillStyle = '#fff'; ctx.textAlign = 'right'; ctx.direction = 'rtl'; ctx.textBaseline = 'alphabetic';
-                ctx.fillText(srcText, rx, H - 135);
+                ctx.fillText(src, rx, H - 135);
                 ctx.restore();
             }
             if (cvLogo.complete && cvLogo.naturalWidth){ ctx.save(); ctx.globalAlpha = outro; ctx.drawImage(cvLogo, 51, H - 51 - 63, 63, 63); ctx.restore(); }
         } finally { cvCtx = prev; CVW = pw; CVH = ph; }
     }
-    function cvVidRenderTo(ctx, W, H, absT){
-        const vw = cvVideoEl.videoWidth, vh = cvVideoEl.videoHeight;
-        if (vw && vh){ const ir = vw / vh, tr = W / H; let sw, sh, sx, sy; if (ir > tr){ sh = vh; sw = sh * tr; sx = (vw - sw) / 2; sy = 0; } else { sw = vw; sh = sw / tr; sx = 0; sy = (vh - sh) / 2; } ctx.drawImage(cvVideoEl, sx, sy, sw, sh, 0, 0, W, H); }
-        else { ctx.fillStyle = '#111'; ctx.fillRect(0, 0, W, H); }
-        const seglen = Math.max(0.1, cvVidState.end - cvVidState.start);
-        cvDrawBrkVideoOverlay(ctx, W, H, absT - cvVidState.start, seglen, document.getElementById('cvVidMotion').checked);
+    function cvVidBg(ctx, W, H){
+        if (cvVidHasVideo()){
+            const vw = cvVideoEl.videoWidth, vh = cvVideoEl.videoHeight;
+            const ir = vw / vh, tr = W / H; let sw, sh, sx, sy;
+            if (ir > tr){ sh = vh; sw = sh * tr; sx = (vw - sw) / 2; sy = 0; } else { sw = vw; sh = sw / tr; sx = 0; sy = (vh - sh) / 2; }
+            ctx.drawImage(cvVideoEl, sx, sy, sw, sh, 0, 0, W, H); return true;
+        }
+        const prev = cvCtx, pw = CVW, ph = CVH; cvCtx = ctx; CVW = W; CVH = H; cvBreakingBg(); cvCtx = prev; CVW = pw; CVH = ph;
+        return false;
     }
-    function cvVidPreview(){ cvVidRenderTo(cvVidCtx, cvVidCanvas.width, cvVidCanvas.height, cvVideoEl.currentTime); }
-    function cvVidLoop(){ if (!cvVidState.playing) return; if (cvVideoEl.currentTime >= cvVidState.end || cvVideoEl.currentTime < cvVidState.start) cvVideoEl.currentTime = cvVidState.start; cvVidPreview(); cvVidState.raf = requestAnimationFrame(cvVidLoop); }
+    function cvVidActiveSeg(T){ const tl = cvSegTimeline(); for (const s of tl.arr){ if (T >= s.start && T < s.end) return s; } return tl.arr[tl.arr.length - 1] || null; }
+    function cvVidDrawAtT(ctx, W, H, T){
+        const isVid = cvVidBg(ctx, W, H);
+        const s = cvVidActiveSeg(T);
+        const trel = s ? (T - s.start) : T;
+        const segdur = s ? s.dur : 8;
+        const head = s ? s.seg.headline : '';
+        const src = s ? s.seg.source : '';
+        cvDrawBrkVideoOverlay(ctx, W, H, trel, segdur, document.getElementById('cvVidMotion').checked, head, src, isVid);
+    }
+    function cvVidPreviewStatic(){ if (!cvVidCanvas) return; cvVidDrawAtT(cvVidCtx, cvVidCanvas.width, cvVidCanvas.height, 1.4); }
+    function cvVidPreview(){ cvVidPreviewStatic(); }
+    function cvVidLoop(){
+        if (!cvVidState.playing) return;
+        const total = Math.max(0.1, cvSegTimeline().total);
+        let T = (performance.now() - cvVidClock) / 1000;
+        if (T >= total){ cvVidClock = performance.now(); T = 0; }
+        if (cvVidHasVideo()){ const te = cvVidState.end || cvVideoEl.duration || total; const ts = cvVidState.start || 0; if (cvVideoEl.currentTime >= te) cvVideoEl.currentTime = ts; }
+        cvVidDrawAtT(cvVidCtx, cvVidCanvas.width, cvVidCanvas.height, T);
+        cvVidState.raf = requestAnimationFrame(cvVidLoop);
+    }
 
     function cvVidUpdateTrim(){
         let a = parseFloat(document.getElementById('cvVidStart').value) || 0;
@@ -1857,17 +1931,15 @@
         if (b < a + 0.3) { if (this && this.id === 'cvVidStart') a = Math.max(0, b - 0.3); else b = Math.min(cvVidState.dur, a + 0.3); document.getElementById('cvVidStart').value = a; document.getElementById('cvVidEnd').value = b; }
         cvVidState.start = a; cvVidState.end = b;
         document.getElementById('cvVidTrimInfo').textContent = cvFmt(a) + ' – ' + cvFmt(b) + '  (' + cvFmt(b - a) + ')';
-        if (!cvVidState.playing && cvVidState.loaded){ cvVideoEl.currentTime = a; }
+        if (!cvVidState.playing) cvVidPreviewStatic();
     }
 
     document.getElementById('cvVidChoose').addEventListener('click', () => document.getElementById('cvVidInput').click());
-    document.getElementById('cvVidSize').addEventListener('change', () => { const s = cvVidSizeObj(); cvVidCanvas.width = s.W; cvVidCanvas.height = s.H; if (cvVidState.loaded) cvVidPreview(); });
-    document.getElementById('cvVidMotion').addEventListener('change', () => { if (cvVidState.loaded) cvVidPreview(); });
+    document.getElementById('cvVidSize').addEventListener('change', () => { const s = cvVidSizeObj(); cvVidCanvas.width = s.W; cvVidCanvas.height = s.H; cvVidPreviewStatic(); });
+    document.getElementById('cvVidMotion').addEventListener('change', () => cvVidPreviewStatic());
     document.getElementById('cvVidStart').addEventListener('input', cvVidUpdateTrim);
     document.getElementById('cvVidEnd').addEventListener('input', cvVidUpdateTrim);
     document.getElementById('cvVidVol').addEventListener('input', e => { document.getElementById('cvVidVolVal').textContent = e.target.value + '%'; });
-    cvHeadlineEl.addEventListener('input', () => { if (cvVidState.loaded && !document.getElementById('cvVideoSec').hidden) cvVidPreview(); });
-    cvSourceEl.addEventListener('input', () => { if (cvVidState.loaded && !document.getElementById('cvVideoSec').hidden) cvVidPreview(); });
 
     document.getElementById('cvVidInput').addEventListener('change', e => {
         const file = e.target.files[0]; if (!file) return;
@@ -1881,28 +1953,21 @@
             const st = document.getElementById('cvVidStart'), en = document.getElementById('cvVidEnd');
             st.max = cvVidState.dur; en.max = cvVidState.dur; st.value = 0; en.value = cvVidState.dur;
             cvVidUpdateTrim();
-            document.getElementById('cvVidPlay').disabled = false;
-            document.getElementById('cvVidReplay').disabled = false;
-            document.getElementById('cvVidExport').disabled = false;
             const s = cvVidSizeObj(); cvVidCanvas.width = s.W; cvVidCanvas.height = s.H;
             cvVideoEl.currentTime = 0;
-            cvVideoEl.onseeked = () => { cvVidPreview(); cvVideoEl.onseeked = null; };
+            cvVideoEl.onseeked = () => { cvVidPreviewStatic(); cvVideoEl.onseeked = null; };
         };
     });
 
     function cvVidStartPreview(){
-        cvVideoEl.muted = true; cvVideoEl.loop = false; cvVideoEl.currentTime = cvVidState.start;
-        cvVideoEl.play().then(() => { cvVidState.playing = true; document.getElementById('cvVidPlay').textContent = t('cv_vid_pause'); cvVidLoop(); }).catch(() => {});
+        cvVidClock = performance.now();
+        if (cvVidHasVideo()){ cvVideoEl.muted = true; cvVideoEl.loop = false; cvVideoEl.currentTime = cvVidState.start || 0; cvVideoEl.play().catch(() => {}); }
+        cvVidState.playing = true;
+        document.getElementById('cvVidPlay').textContent = t('cv_vid_pause');
+        cvVidLoop();
     }
-    document.getElementById('cvVidPlay').addEventListener('click', () => {
-        if (!cvVidState.loaded) return;
-        if (cvVidState.playing){ cvVidStop(); } else { cvVidStartPreview(); }
-    });
-    document.getElementById('cvVidReplay').addEventListener('click', () => {
-        if (!cvVidState.loaded) return;
-        cvVideoEl.currentTime = cvVidState.start;
-        if (!cvVidState.playing) cvVidStartPreview(); else cvVidPreview();
-    });
+    document.getElementById('cvVidPlay').addEventListener('click', () => { if (cvVidState.playing){ cvVidStop(); } else { cvVidStartPreview(); } });
+    document.getElementById('cvVidReplay').addEventListener('click', () => { cvVidClock = performance.now(); if (cvVidHasVideo()) cvVideoEl.currentTime = cvVidState.start || 0; if (!cvVidState.playing) cvVidStartPreview(); });
 
     async function cvLoadAudioBuffer(fileUrl, ac){
         if (cvAudioCache[fileUrl]) return cvAudioCache[fileUrl];
@@ -1913,11 +1978,10 @@
     }
 
     async function cvVidExport(){
-        if (!cvVidState.loaded) return;
         if (!cvVidCanvas.captureStream || !window.MediaRecorder){ cvVidStatus(t('cv_vid_unsup')); return; }
         cvVidStop();
         const sz = cvVidSizeObj();
-        const segStart = cvVidState.start, segEnd = cvVidState.end, segLen = Math.max(0.1, segEnd - segStart);
+        const total = Math.max(0.5, cvSegTimeline().total);
         const off = document.createElement('canvas'); off.width = sz.W; off.height = sz.H;
         const octx = off.getContext('2d');
         const vstream = off.captureStream(30);
@@ -1927,33 +1991,23 @@
         const vol = (parseInt(document.getElementById('cvVidVol').value, 10) || 0) / 100;
         let audioTracks = [];
         try {
-            if (!cvVidState.audioCtx){
-                cvVidState.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                cvVidState.audioSrc = cvVidState.audioCtx.createMediaElementSource(cvVideoEl);
-            }
+            const needVideoAudio = cvVidHasVideo();
+            if ((needVideoAudio || musicFile) && !cvVidState.audioCtx){ cvVidState.audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+            if (needVideoAudio && cvVidState.audioCtx && !cvVidState.audioSrc){ cvVidState.audioSrc = cvVidState.audioCtx.createMediaElementSource(cvVideoEl); }
             const ac = cvVidState.audioCtx;
-            if (ac.state === 'suspended') await ac.resume();
-            const dest = ac.createMediaStreamDestination();
-            const vGain = ac.createGain();
-            try { cvVidState.audioSrc.disconnect(); } catch (e) {}
-            cvVidState.audioSrc.connect(vGain); vGain.connect(dest);
-            let musicNode = null, mGain = null;
-            if (musicFile){
-                let buf;
-                try { buf = await cvLoadAudioBuffer(musicFile, ac); }
-                catch (err) { cvVidStatus(t('cv_vid_audioerr')); document.getElementById('cvVidExport').disabled = false; return; }
-                musicNode = ac.createBufferSource(); musicNode.buffer = buf; musicNode.loop = true;
-                mGain = ac.createGain(); musicNode.connect(mGain); mGain.connect(dest);
-                vGain.gain.value = (mode === 'replace') ? 0.0 : 1.0;
-                const startAc = ac.currentTime + 0.06;
-                mGain.gain.setValueAtTime(vol, startAc);
-                mGain.gain.setValueAtTime(vol, startAc + Math.max(0, segLen - 0.5));
-                mGain.gain.linearRampToValueAtTime(0.0001, startAc + segLen);
-                musicNode.start(startAc); musicNode.stop(startAc + segLen + 0.05);
-            } else {
-                vGain.gain.value = 1.0;
+            if (ac){
+                if (ac.state === 'suspended') await ac.resume();
+                const dest = ac.createMediaStreamDestination();
+                if (needVideoAudio && cvVidState.audioSrc){ const vGain = ac.createGain(); try { cvVidState.audioSrc.disconnect(); } catch (e) {} cvVidState.audioSrc.connect(vGain); vGain.connect(dest); vGain.gain.value = (musicFile && mode === 'replace') ? 0.0 : 1.0; }
+                if (musicFile){
+                    let buf; try { buf = await cvLoadAudioBuffer(musicFile, ac); } catch (err) { cvVidStatus(t('cv_vid_audioerr')); document.getElementById('cvVidExport').disabled = false; return; }
+                    const mNode = ac.createBufferSource(); mNode.buffer = buf; mNode.loop = true; const mGain = ac.createGain(); mNode.connect(mGain); mGain.connect(dest);
+                    const startAc = ac.currentTime + 0.06;
+                    mGain.gain.setValueAtTime(vol, startAc); mGain.gain.setValueAtTime(vol, startAc + Math.max(0, total - 0.6)); mGain.gain.linearRampToValueAtTime(0.0001, startAc + total);
+                    mNode.start(startAc); mNode.stop(startAc + total + 0.05);
+                }
+                audioTracks = dest.stream.getAudioTracks();
             }
-            audioTracks = dest.stream.getAudioTracks();
         } catch (e) { audioTracks = []; }
 
         const combined = new MediaStream([...vstream.getVideoTracks(), ...audioTracks]);
@@ -1971,21 +2025,22 @@
         };
         document.getElementById('cvVidExport').disabled = true;
         cvVidStatus(t('cv_vid_rec'));
-        cvVideoEl.loop = false; cvVideoEl.muted = false; cvVideoEl.currentTime = segStart;
-        try { await cvVideoEl.play(); } catch (e) {}
+        cvVidClock = performance.now();
+        if (cvVidHasVideo()){ cvVideoEl.loop = false; cvVideoEl.muted = false; cvVideoEl.currentTime = cvVidState.start || 0; try { await cvVideoEl.play(); } catch (e) {} }
         rec.start();
         const step = () => {
+            const T = (performance.now() - cvVidClock) / 1000;
+            if (cvVidHasVideo()){ const te = cvVidState.end || cvVideoEl.duration || total; const ts = cvVidState.start || 0; if (cvVideoEl.currentTime >= te) cvVideoEl.currentTime = ts; }
             octx.clearRect(0, 0, sz.W, sz.H);
-            cvVidRenderTo(octx, sz.W, sz.H, cvVideoEl.currentTime);
-            const pct = segLen ? Math.min(100, Math.round((cvVideoEl.currentTime - segStart) / segLen * 100)) : 0;
-            cvVidStatus(t('cv_vid_rec') + ' ' + Math.max(0, pct) + '%');
-            if (cvVideoEl.ended || cvVideoEl.currentTime >= segEnd - 0.03){ try { rec.stop(); } catch (e) {} try { cvVideoEl.pause(); } catch (e) {} return; }
-            if (cvVideoEl.requestVideoFrameCallback) cvVideoEl.requestVideoFrameCallback(step); else requestAnimationFrame(step);
+            cvVidDrawAtT(octx, sz.W, sz.H, Math.min(T, total));
+            cvVidStatus(t('cv_vid_rec') + ' ' + Math.min(100, Math.round(T / total * 100)) + '%');
+            if (T >= total){ try { rec.stop(); } catch (e) {} try { cvVideoEl.pause(); } catch (e) {} return; }
+            requestAnimationFrame(step);
         };
-        if (cvVideoEl.requestVideoFrameCallback) cvVideoEl.requestVideoFrameCallback(step); else requestAnimationFrame(step);
-        cvVideoEl.onended = () => { try { rec.stop(); } catch (e) {} };
+        requestAnimationFrame(step);
     }
     document.getElementById('cvVidExport').addEventListener('click', cvVidExport);
+    cvRenderSegs();
 
     ensureLogos();
     applyLang();
