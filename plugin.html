@@ -427,7 +427,7 @@
             <button id="cvVidChoose" class="cv-mini-btn" style="margin-top:0">Choose video</button>
             <span id="cvVidName" class="cv-slim" style="margin-left:8px;color:#556"></span>
 
-            <canvas id="cvVidCanvas" width="1080" height="1440"></canvas>
+            <canvas id="cvVidCanvas" width="1080" height="1920"></canvas>
             <div style="text-align:center;margin-top:8px">
               <button id="cvVidPlay" class="cv-mini-btn" disabled>Play</button>
               <button id="cvVidReplay" class="cv-mini-btn" disabled>Replay</button>
@@ -440,7 +440,7 @@
 
             <div class="cv-slider-row" style="margin-top:12px">
               <span class="cv-slim" id="cvVidSizeLbl">Size</span>
-              <select id="cvVidSize" style="flex:1"><option value="pt">Instagram · 1080×1440</option><option value="sq">X · 1080×1080</option></select>
+              <select id="cvVidSize" style="flex:1"><option value="reel">Reels/Stories · 1080×1920</option><option value="sq">X · 1080×1080</option><option value="fe">Feed · 1080×1350</option></select>
             </div>
             <label class="checkbox-container" style="margin-top:10px"><input type="checkbox" id="cvVidMotion" checked> <span id="cvVidMotionLbl">Motion</span></label>
 
@@ -1424,6 +1424,7 @@
         const right = document.querySelector('.cv-right'); if (right) right.hidden = vidMode;
         set('cvVideoSec', !vidMode);
         if (vidMode){
+            if (typeof cvVidSizeObj === 'function'){ const s = cvVidSizeObj(); const c = document.getElementById('cvVidCanvas'); c.width = s.W; c.height = s.H; }
             document.getElementById('cvVidPlay').disabled = false;
             document.getElementById('cvVidReplay').disabled = false;
             document.getElementById('cvVidExport').disabled = false;
@@ -1809,7 +1810,7 @@
         { file:'audio/AA-60-SANIYE-2021_01.wav', label:'AA 60 sn' }
     ];
     function cvVidStatus(m){ const el=document.getElementById('cvVidStatus'); if(el) el.textContent=m||''; }
-    function cvVidSizeObj(){ return document.getElementById('cvVidSize').value==='sq' ? {W:1080,H:1080} : {W:1080,H:1440}; }
+    function cvVidSizeObj(){ const v = document.getElementById('cvVidSize').value; if (v==='sq') return {W:1080,H:1080}; if (v==='fe') return {W:1080,H:1350}; return {W:1080,H:1920}; }
     function cvFmt(s){ s=Math.max(0,s||0); const m=Math.floor(s/60), x=Math.floor(s%60); return m+':'+(x<10?'0':'')+x; }
     function cvVidStop(){ cvVidState.playing=false; cancelAnimationFrame(cvVidState.raf); try{ cvVideoEl.pause(); }catch(e){} const b=document.getElementById('cvVidPlay'); if(b) b.textContent=t('cv_vid_play'); }
 
