@@ -1669,10 +1669,22 @@
         });
         return { total, accL, accR };
     }
+    // Breaking wrap: alternating long / short / long lines, with comfortable leading
     function cvWrapTokens(tokens, boxW, maxFont, minFont, allBold, maxLines){
-        const build = (fs) => { const lines = []; let cur = []; tokens.forEach(tk => { const test = cur.concat(tk); if (!cur.length || cvLineWidth(test, fs, allBold) <= boxW) cur = test; else { lines.push(cur); cur = [tk]; } }); if (cur.length) lines.push(cur); return lines; };
-        for (let fs = maxFont; fs >= minFont; fs -= 2){ const lines = build(fs); if (lines.length <= maxLines) return { fs, lines, lh: Math.round(fs * 1.32) }; }
-        return { fs: minFont, lines: build(minFont), lh: Math.round(minFont * 1.32) };
+        const shortRatio = 0.6, LEAD = 1.42;
+        const build = (fs) => {
+            const lines = []; let cur = [], li = 0;
+            const limit = () => (li % 2 === 0) ? boxW : boxW * shortRatio;
+            tokens.forEach(tk => {
+                const test = cur.concat(tk);
+                if (!cur.length || cvLineWidth(test, fs, allBold) <= limit()) cur = test;
+                else { lines.push(cur); cur = [tk]; li++; }
+            });
+            if (cur.length) lines.push(cur);
+            return lines;
+        };
+        for (let fs = maxFont; fs >= minFont; fs -= 2){ const lines = build(fs); if (lines.length <= maxLines) return { fs, lines, lh: Math.round(fs * LEAD) }; }
+        return { fs: minFont, lines: build(minFont), lh: Math.round(minFont * LEAD) };
     }
     function cvDrawLineRightEdge(toks, rx, y, fs, allBold){
         if (!toks.length) return 0;
@@ -1700,7 +1712,7 @@
         const el = document.getElementById('cvWordCount'); if (!el) return;
         const n = cvParseTokens(cvHeadlineEl.value).length;
         const brk = cvState.style === 'brk';
-        const lo = brk ? 12 : 6, hi = brk ? 18 : 8;
+        const lo = brk ? 12 : 6, hi = brk ? 20 : 8;
         el.textContent = t('cv_words')(n, lo, hi);
         el.style.color = (n >= lo && n <= hi) ? '#059669' : '#d97706';
     }
@@ -1777,7 +1789,7 @@
         } else {  // brk
             const rx = CVW - 71, bw = 900;
             const cmul = cvCardTextMul();
-            const f = cvWrapTokens(tokens, bw, Math.round(80 * cmul), Math.round(44 * cmul), allBold, 4);
+            const f = cvWrapTokens(tokens, bw, Math.round(80 * cmul), Math.round(44 * cmul), allBold, 6);
             const nL = Math.max(f.lines.length, 1);
             const lastBaseline = CVH - 200;
             const firstY = lastBaseline - (nL - 1) * f.lh;
@@ -1890,7 +1902,7 @@
             const tokens = cvParseTokens(head);
             const rx = W - 71, bw = 900;
             const mul = (typeof cvVidTextMul === 'function') ? cvVidTextMul() : 0.85;
-            const f = cvWrapTokens(tokens, bw, Math.round(80 * mul), Math.round(44 * mul), allBold, 4);
+            const f = cvWrapTokens(tokens, bw, Math.round(80 * mul), Math.round(44 * mul), allBold, 6);
             const nL = Math.max(f.lines.length, 1);
             const firstY = (H - 200) - (nL - 1) * f.lh;
             const easeOut = x => 1 - Math.pow(1 - Math.max(0, Math.min(1, x)), 3);
