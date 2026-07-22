@@ -309,7 +309,7 @@
         #cvVidTotal { text-align:center; }
         .cv-subhead { font-size:11px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:#9aa1b1; margin:16px 0 8px; padding-top:14px; border-top:1px solid #eef0f5; }
         #cvVidTrimBlock[hidden] { display:none; }
-        #cvCardTextWrap[hidden] { display:none; }
+        #cvCardTextWrap[hidden], #cvCardSuggestWrap[hidden] { display:none; }
     </style>
 </head>
 
@@ -401,6 +401,10 @@
             <div id="cvSourceWrap" hidden>
               <div class="cv-label" id="cvLblSource">Source</div>
               <input type="text" id="cvSource" placeholder="مصدر طبي للأناضول">
+            </div>
+            <div id="cvCardSuggestWrap" hidden>
+              <button id="cvSuggestBreaks" class="cv-mini-btn" style="margin-top:10px">Suggest line breaks</button>
+              <span class="cv-hint" id="cvSuggestHint" style="margin-right:8px">Enter = manual line break</span>
             </div>
             <div id="cvCardTextWrap" hidden>
               <div class="cv-slider-row" style="margin-top:10px">
@@ -631,7 +635,7 @@
         cv_sec_brk:"Son dakika metni",
         cv_vid_title:"Video (deneysel)", cv_vid_choose:"Video seç", cv_vid_size:"Boyut", cv_vid_motion:"Hareket", cv_vid_play:"Oynat", cv_vid_pause:"Duraklat", cv_vid_export:"Videoyu dışa aktar", cv_vid_rec:"Kaydediliyor…", cv_vid_done:"Video indirildi ✓", cv_vid_unsup:"Bu tarayıcı video dışa aktarmayı desteklemiyor",
         cv_mode_card:"Kart", cv_mode_video:"Video",
-        cv_vid_seg:"Son dakika", cv_vid_add:"+ Son dakika ekle", cv_vid_seglbl:"Son dakika metinleri", cv_vid_grp_source:"Kaynak", cv_vid_grp_output:"Çıktı", cv_vid_textsize:"Metin boyutu", cv_vid_bghint:"Renk = kırmızı arka plan", cv_src_video:"Video", cv_src_image:"Görsel", cv_src_color:"Renk", cv_vid_choose_img:"Görsel seç", cv_vid_cropimg:"Görseli kırp", cv_vid_total:(n,s)=>`Toplam: ${s}s (${n} son dakika)`,
+        cv_vid_seg:"Son dakika", cv_vid_add:"+ Son dakika ekle", cv_vid_seglbl:"Son dakika metinleri", cv_vid_grp_source:"Kaynak", cv_vid_grp_output:"Çıktı", cv_vid_textsize:"Metin boyutu", cv_vid_bghint:"Renk = kırmızı arka plan", cv_src_video:"Video", cv_src_image:"Görsel", cv_src_color:"Renk", cv_vid_choose_img:"Görsel seç", cv_vid_cropimg:"Görseli kırp", cv_suggest:"Satırları öner", cv_suggest_hint:"Enter = elle satır sonu", cv_vid_total:(n,s)=>`Toplam: ${s}s (${n} son dakika)`,
         cv_vid_replay:"Tekrar", cv_vid_trim:"Kırp (süre)", cv_vid_audio:"Ses", cv_vid_mode:"Mod", cv_vid_mix:"Karıştır", cv_vid_replace:"Değiştir", cv_vid_music:"Müzik", cv_vid_none:"— (video sesi)", cv_vid_audioerr:"Ses dosyası bulunamadı",
         cv_drop:"Kapak fotoğrafını sürükleyin veya tıklayın",
         cv_drop_ok:"Kapak fotoğrafı hazır ✓",
@@ -688,7 +692,7 @@
         cv_sec_brk:"Breaking text",
         cv_vid_title:"Video (experimental)", cv_vid_choose:"Choose video", cv_vid_size:"Size", cv_vid_motion:"Motion", cv_vid_play:"Play", cv_vid_pause:"Pause", cv_vid_export:"Export video", cv_vid_rec:"Recording…", cv_vid_done:"Video downloaded ✓", cv_vid_unsup:"This browser cannot export video",
         cv_mode_card:"Card", cv_mode_video:"Video",
-        cv_vid_seg:"Breaking", cv_vid_add:"+ Add breaking", cv_vid_seglbl:"Breaking segments", cv_vid_grp_source:"Source", cv_vid_grp_output:"Output", cv_vid_textsize:"Text size", cv_vid_bghint:"Color = red background", cv_src_video:"Video", cv_src_image:"Image", cv_src_color:"Color", cv_vid_choose_img:"Choose image", cv_vid_cropimg:"Crop image", cv_vid_total:(n,s)=>`Total: ${s}s (${n} breaking)`,
+        cv_vid_seg:"Breaking", cv_vid_add:"+ Add breaking", cv_vid_seglbl:"Breaking segments", cv_vid_grp_source:"Source", cv_vid_grp_output:"Output", cv_vid_textsize:"Text size", cv_vid_bghint:"Color = red background", cv_src_video:"Video", cv_src_image:"Image", cv_src_color:"Color", cv_vid_choose_img:"Choose image", cv_vid_cropimg:"Crop image", cv_suggest:"Suggest line breaks", cv_suggest_hint:"Enter = manual line break", cv_vid_total:(n,s)=>`Total: ${s}s (${n} breaking)`,
         cv_vid_replay:"Replay", cv_vid_trim:"Trim", cv_vid_audio:"Audio", cv_vid_mode:"Mode", cv_vid_mix:"Mix", cv_vid_replace:"Replace", cv_vid_music:"Music", cv_vid_none:"— (video audio)", cv_vid_audioerr:"Audio file not found",
         cv_drop:"Drag a cover photo, or click",
         cv_drop_ok:"Cover photo ready ✓",
@@ -739,7 +743,8 @@
       if (!cvState.img) g('cvDrop').textContent = t('cv_drop');
       g('cvLblStyle').textContent = t('cv_style');
       g('cvS02').textContent = t('cv_s02'); g('cvS01').textContent = t('cv_s01'); g('cvS3L').textContent = t('cv_s3l');
-      g('cvLblKicker').textContent = t('cv_kicker'); g('cvLblSource').textContent = t('cv_source'); if(document.getElementById('cvCardTextLbl')) g('cvCardTextLbl').textContent = t('cv_vid_textsize'); g('cvLblHeadline').textContent = t('cv_headline');
+      g('cvLblKicker').textContent = t('cv_kicker'); g('cvLblSource').textContent = t('cv_source'); if(document.getElementById('cvCardTextLbl')) g('cvCardTextLbl').textContent = t('cv_vid_textsize');
+      if(document.getElementById('cvSuggestBreaks')){ g('cvSuggestBreaks').textContent = t('cv_suggest'); g('cvSuggestHint').textContent = t('cv_suggest_hint'); } g('cvLblHeadline').textContent = t('cv_headline');
       g('cvLblOpen').textContent = t('cv_open'); g('cvHint').textContent = t('cv_hint');
       g('cvExportBtn').textContent = t('cv_export');
       g('cvLblAllBold').textContent = t('cv_allbold');
@@ -1424,6 +1429,7 @@
             cvKickerWrap.hidden = (cvState.style !== 's3l');
             cvSourceWrap.hidden = true;
             document.getElementById('cvCardTextWrap').hidden = true;
+            document.getElementById('cvCardSuggestWrap').hidden = true;
             cvSetActiveStyleBtn();
             document.getElementById('cvExportBtn').disabled = !cvState.img;
         } else if (which === 'b'){
@@ -1433,6 +1439,7 @@
             cvKickerWrap.hidden = true;
             cvSourceWrap.hidden = false;
             document.getElementById('cvCardTextWrap').hidden = false;
+            document.getElementById('cvCardSuggestWrap').hidden = false;
             document.getElementById('cvExportBtn').disabled = false;
         }
         cvApplyBrkMode(which === 'b');
@@ -1493,6 +1500,19 @@
     cvKickerEl.addEventListener('input', cvRenderAll);
     cvSourceEl.addEventListener('input', cvRenderAll);
     document.getElementById('cvCardTextSize').addEventListener('input', e => { document.getElementById('cvCardTextVal').textContent = e.target.value + '%'; cvRenderAll(); });
+    function cvSuggestLineBreaks(){
+        const raw = cvHeadlineEl.value.replace(/\n+/g, ' ').trim();
+        if (!raw) return;
+        cvCtx = cvSizes[1].canvas.getContext('2d'); CVW = cvSizes[1].W; CVH = cvSizes[1].H;
+        const allBold = document.getElementById('cvAllBold').checked;
+        const cmul = cvCardTextMul();
+        const toks = cvParseTokens(raw).filter(t => !t.br);
+        const f = cvWrapTokens(toks, 900, Math.round(80 * cmul), Math.round(44 * cmul), allBold, 6);
+        const rebuild = ln => ln.map(t => (t.accent ? '_' : '') + ((t.bold && !allBold) ? '*' : '') + t.text + ((t.bold && !allBold) ? '*' : '') + (t.accent ? '_' : '')).join(' ');
+        cvHeadlineEl.value = f.lines.map(rebuild).join('\n');
+        cvRenderAll();
+    }
+    document.getElementById('cvSuggestBreaks').addEventListener('click', cvSuggestLineBreaks);
     document.getElementById('cvAllBold').addEventListener('change', cvRenderAll);
 
     // photo input
@@ -1645,6 +1665,7 @@
             const ch = s[i];
             if (ch === '*'){ flush(); bold = !bold; }
             else if (ch === '_'){ flush(); accent = !accent; }
+            else if (ch === '\n'){ flush(); tokens.push({ br: true }); }
             else cur += ch;
         }
         flush();
@@ -1654,6 +1675,7 @@
     function cvSpaceWidth(fs){ cvCtx.font = '400 ' + fs + 'px HNArabic'; return cvCtx.measureText(' ').width || fs * 0.25; }
     function cvLineWidth(toks, fs, allBold){ if (!toks.length) return 0; let s = 0; toks.forEach(t => s += cvWordWidth(t, fs, allBold)); return s + cvSpaceWidth(fs) * (toks.length - 1); }
     function cvLayoutHeadline(tokens, boxW, maxFont, minFont, allBold){
+        tokens = tokens.filter(t => !t.br);
         const n = tokens.length;
         for (let fs = maxFont; fs >= minFont; fs -= 2){
             if (n === 0) return { fs, lines: [], lh: Math.round(fs * 1.34) };
@@ -1684,6 +1706,17 @@
     // Breaking wrap: alternating long / short / long lines, with comfortable leading
     function cvWrapTokens(tokens, boxW, maxFont, minFont, allBold, maxLines){
         const shortRatio = 0.6, LEAD = 1.42;
+        // Manual mode: the user placed line breaks (Enter) — respect them exactly
+        if (tokens.some(t => t.br)){
+            const manual = []; let cur = [];
+            tokens.forEach(t => { if (t.br){ manual.push(cur); cur = []; } else cur.push(t); });
+            manual.push(cur);
+            const lines = manual.filter(l => l.length);
+            for (let fs = maxFont; fs >= minFont; fs -= 2){
+                if (lines.every(l => cvLineWidth(l, fs, allBold) <= boxW)) return { fs, lines, lh: Math.round(fs * LEAD) };
+            }
+            return { fs: minFont, lines, lh: Math.round(minFont * LEAD) };
+        }
         const build = (fs) => {
             const lines = []; let cur = [], li = 0;
             const limit = () => (li % 2 === 0) ? boxW : boxW * shortRatio;
@@ -1722,7 +1755,7 @@
     }
     function cvUpdateWordCount(){
         const el = document.getElementById('cvWordCount'); if (!el) return;
-        const n = cvParseTokens(cvHeadlineEl.value).length;
+        const n = cvParseTokens(cvHeadlineEl.value).filter(t => !t.br).length;
         const brk = cvState.style === 'brk';
         const lo = brk ? 12 : 6, hi = brk ? 20 : 8;
         el.textContent = t('cv_words')(n, lo, hi);
