@@ -1935,7 +1935,9 @@
             const inp = document.createElement('input'); inp.className = 'cv-seg-s'; inp.dir = 'rtl'; inp.placeholder = t('cv_source'); inp.value = s.source;
             ta.addEventListener('input', () => { s.headline = ta.value; du.textContent = cvSegDur(s).toFixed(0) + 's'; cvVidUpdateTotal(); cvVidPreviewStatic(); });
             inp.addEventListener('input', () => { s.source = inp.value; cvVidPreviewStatic(); });
-            row.appendChild(head); row.appendChild(ta); row.appendChild(inp);
+            const sug = document.createElement('button'); sug.className = 'cv-mini-btn'; sug.style.marginTop = '0'; sug.style.marginBottom = '6px'; sug.textContent = t('cv_suggest');
+            sug.addEventListener('click', () => { cvSuggestSegBreaks(s); ta.value = s.headline; cvVidPreviewStatic(); });
+            row.appendChild(head); row.appendChild(ta); row.appendChild(sug); row.appendChild(inp);
 
             const imgRow = document.createElement('div'); imgRow.className = 'cv-seg-img';
             imgRow.hidden = (cvVidSourceVal !== 'image');
@@ -2050,6 +2052,17 @@
         const head = s ? s.seg.headline : '';
         const src = s ? s.seg.source : '';
         cvDrawBrkVideoOverlay(ctx, W, H, trel, segdur, document.getElementById('cvVidMotion').checked, head, src, isVid);
+    }
+    function cvSuggestSegBreaks(seg){
+        const raw = (seg.headline || '').replace(/\n+/g, ' ').trim(); if (!raw) return;
+        const sz = cvVidSizeObj();
+        cvCtx = cvVidCanvas.getContext('2d'); CVW = sz.W; CVH = sz.H;
+        const allBold = document.getElementById('cvAllBold').checked;
+        const mul = cvVidTextMul();
+        const toks = cvParseTokens(raw).filter(t => !t.br);
+        const f = cvWrapTokens(toks, 900, Math.round(80 * mul), Math.round(44 * mul), allBold, 6);
+        const rebuild = ln => ln.map(t => (t.accent ? '_' : '') + ((t.bold && !allBold) ? '*' : '') + t.text + ((t.bold && !allBold) ? '*' : '') + (t.accent ? '_' : '')).join(' ');
+        seg.headline = f.lines.map(rebuild).join('\n');
     }
     function cvVidPreviewStatic(){ if (!cvVidCanvas) return; cvVidDrawAtT(cvVidCtx, cvVidCanvas.width, cvVidCanvas.height, 1.4); }
     function cvVidPreview(){ cvVidPreviewStatic(); }
