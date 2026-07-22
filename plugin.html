@@ -1375,6 +1375,10 @@
 
     /* ============================ KEYBOARD ============================ */
     document.addEventListener("keydown", (e) => {
+        const tg = e.target, tn = tg && tg.tagName;
+        const typing = (tn === 'TEXTAREA' || tn === 'INPUT' || tn === 'SELECT' || (tg && tg.isContentEditable));
+        if (typing) return;                       // never hijack Enter while typing
+        if (document.getElementById('tab-watermark').hidden) return;   // watermark tab only
         if (e.key === "Enter" && previewModal.style.display !== "flex") {
             e.preventDefault();
             processBtn.click();
