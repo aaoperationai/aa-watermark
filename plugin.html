@@ -312,6 +312,12 @@
         .cv-seg-img { display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
         .cv-seg-img[hidden] { display:none; }
         #cvCardTextWrap[hidden], #cvCardSuggestWrap[hidden] { display:none; }
+        #rlCanvas { width:100%; max-width:300px; height:auto; border-radius:10px; border:1px solid #e5e7eb; background:#111; box-shadow:0 6px 18px rgba(0,0,0,.12); }
+        #rlTitle { width:100%; padding:10px 12px; border:2px solid #e5e7eb; border-radius:10px; font-family:'HNArabic','Inter',sans-serif; font-size:15px; direction:rtl; box-sizing:border-box; resize:vertical; }
+        #rlLoc { width:100%; padding:10px 12px; border:2px solid #e5e7eb; border-radius:10px; font-family:'HNArabic','Inter',sans-serif; font-size:15px; direction:rtl; box-sizing:border-box; }
+        #rlTitle:focus, #rlLoc:focus { outline:none; border-color:#2b7cff; }
+        #rlSize, #rlAudio, #rlAudioMode { padding:8px; border:1px solid #d6dae6; border-radius:8px; font-family:inherit; font-size:13px; background:#fff; color:#111827; }
+        #rlAudioSec[hidden], #rlPlayRow[hidden], #rlTitleDurRow[hidden], #rlClipRow[hidden], #rlMotionRow[hidden], #rlSrcVideo[hidden] { display:none; }
     </style>
 </head>
 
@@ -329,6 +335,7 @@
         <button id="tabW" class="tab active">Watermark</button>
         <button id="tabC" class="tab">Cards</button>
         <button id="tabB" class="tab">Breaking</button>
+        <button id="tabR" class="tab">Reels</button>
     </div>
 
     <div id="tab-watermark" class="tabpane">
@@ -518,6 +525,74 @@
       </div>
     </div><!-- /tab-cover -->
 
+    <div id="tab-reels" class="tabpane" hidden>
+      <div class="cv-grid">
+        <div class="cv-left">
+          <div id="rlModeBar" style="display:flex;gap:6px;margin-bottom:14px">
+            <button id="rlModeVideo" class="cv-mode-btn active">Video</button>
+            <button id="rlModeCover" class="cv-mode-btn">Cover</button>
+          </div>
+
+          <div class="cv-section">
+            <div class="cv-sec-title" id="rlSecSource">Source</div>
+            <div style="display:flex;gap:6px;margin-bottom:10px">
+              <button id="rlSrcVideo" class="cv-mode-btn active">Video</button>
+              <button id="rlSrcImage" class="cv-mode-btn">Image</button>
+            </div>
+            <video id="rlVideoEl" playsinline muted style="display:none"></video>
+            <input type="file" id="rlVidInput" accept="video/*" style="display:none">
+            <input type="file" id="rlImgInput" accept="image/*" style="display:none">
+            <button id="rlChoose" class="cv-mini-btn" style="margin-top:0">Choose video</button>
+            <button id="rlCropBtn" class="cv-mini-btn" style="margin-top:0" hidden>Crop image</button>
+            <span id="rlName" class="cv-slim" style="margin-left:8px;color:#556"></span>
+          </div>
+
+          <div class="cv-section">
+            <div class="cv-sec-title" id="rlSecText">Text</div>
+            <div class="cv-label" id="rlLblTitle">Title</div>
+            <textarea id="rlTitle" rows="2" placeholder="اكتب العنوان هنا"></textarea>
+            <div id="rlWords" class="cv-hint" style="text-align:right;margin-top:6px;"></div>
+            <button id="rlSuggest" class="cv-mini-btn" style="margin-top:6px">Suggest line breaks</button>
+            <div class="cv-label" id="rlLblLoc">Location badge</div>
+            <input type="text" id="rlLoc" placeholder="إسبانيا">
+            <div class="cv-slider-row" style="margin-top:10px"><span class="cv-slim" id="rlLblTextSize">Text size</span><input type="range" id="rlTextSize" min="60" max="130" value="100" style="flex:1"><span class="cv-slim" id="rlTextVal">100%</span></div>
+          </div>
+
+          <div class="cv-section">
+            <div class="cv-sec-title" id="rlSecOut">Output</div>
+            <div class="cv-slider-row"><span class="cv-slim" id="rlLblSize">Size</span><select id="rlSize" style="flex:1"></select></div>
+            <div class="cv-slider-row" id="rlTitleDurRow" style="margin-top:8px"><span class="cv-slim" id="rlLblDur">Title time</span><input type="range" id="rlTitleDur" min="2" max="12" value="5" style="flex:1"><span class="cv-slim" id="rlDurVal">5s</span></div>
+            <div class="cv-slider-row" id="rlClipRow" style="margin-top:8px" hidden><span class="cv-slim" id="rlLblClip">Duration</span><input type="range" id="rlClipDur" min="5" max="30" value="10" style="flex:1"><span class="cv-slim" id="rlClipVal">10s</span></div>
+            <div id="rlMotionRow"><label class="checkbox-container" style="margin-top:10px"><input type="checkbox" id="rlMotion" checked> <span id="rlLblMotion">Motion</span></label></div>
+          </div>
+
+          <div class="cv-section" id="rlAudioSec">
+            <div class="cv-sec-title" id="rlSecAudio">Audio</div>
+            <select id="rlAudio" style="width:100%"></select>
+            <div class="cv-slider-row" style="margin-top:8px"><span class="cv-slim" id="rlLblMode">Mode</span><select id="rlAudioMode" style="flex:1"><option value="mix">Mix</option><option value="replace">Replace</option></select></div>
+            <div class="cv-slider-row" style="margin-top:8px"><span class="cv-slim" id="rlLblVol">Music</span><input type="range" id="rlVol" min="0" max="100" value="80" style="flex:1"><span class="cv-slim" id="rlVolVal">80%</span></div>
+          </div>
+
+          <div class="cv-section">
+            <button id="rlExport">Export video</button>
+            <div id="rlStatus" style="margin-top:10px;font-size:12px;color:#6b7280;text-align:center;min-height:16px;"></div>
+          </div>
+        </div>
+
+        <div class="cv-right">
+          <div class="cv-preview-sticky">
+            <div class="cv-prev-item">
+              <canvas id="rlCanvas" width="1080" height="1920"></canvas>
+              <div id="rlPlayRow">
+                <button id="rlPlay" class="cv-mini-btn">Play</button>
+                <button id="rlReplay" class="cv-mini-btn">Replay</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /tab-reels -->
+
     <div id="previewModal">
         <div id="closeModalBtn">✕</div>
         <div id="cropEditorContainer">
@@ -637,7 +712,8 @@
         cv_sec_brk:"Son dakika metni",
         cv_vid_title:"Video (deneysel)", cv_vid_choose:"Video seç", cv_vid_size:"Boyut", cv_vid_motion:"Hareket", cv_vid_play:"Oynat", cv_vid_pause:"Duraklat", cv_vid_export:"Videoyu dışa aktar", cv_vid_rec:"Kaydediliyor…", cv_vid_done:"Video indirildi ✓", cv_vid_unsup:"Bu tarayıcı video dışa aktarmayı desteklemiyor",
         cv_mode_card:"Kart", cv_mode_video:"Video",
-        cv_vid_seg:"Son dakika", cv_vid_add:"+ Son dakika ekle", cv_vid_seglbl:"Son dakika metinleri", cv_vid_grp_source:"Kaynak", cv_vid_grp_output:"Çıktı", cv_vid_textsize:"Metin boyutu", cv_vid_bghint:"Renk = kırmızı arka plan", cv_src_video:"Video", cv_src_image:"Görsel", cv_src_color:"Renk", cv_vid_choose_img:"Görsel seç", cv_vid_cropimg:"Görseli kırp", cv_suggest:"Satırları öner", cv_seg_imgadd:"Görsel ekle", cv_seg_imgchange:"Görseli değiştir", cv_suggest_hint:"Enter = elle satır sonu", cv_vid_total:(n,s)=>`Toplam: ${s}s (${n} son dakika)`,
+        cv_vid_seg:"Son dakika", cv_vid_add:"+ Son dakika ekle", cv_vid_seglbl:"Son dakika metinleri", cv_vid_grp_source:"Kaynak", cv_vid_grp_output:"Çıktı", cv_vid_textsize:"Metin boyutu", cv_vid_bghint:"Renk = kırmızı arka plan", cv_src_video:"Video", cv_src_image:"Görsel", cv_src_color:"Renk", cv_vid_choose_img:"Görsel seç", cv_vid_cropimg:"Görseli kırp", cv_suggest:"Satırları öner", cv_seg_imgadd:"Görsel ekle", cv_seg_imgchange:"Görseli değiştir", cv_suggest_hint:"Enter = elle satır sonu",
+        tab_r:"Reels", rl_mode_video:"Video", rl_mode_cover:"Kapak", rl_title:"Başlık", rl_loc:"Konum rozeti", rl_dur:"Başlık süresi", rl_clip:"Süre", rl_export_v:"Videoyu dışa aktar", rl_export_c:"Kapağı indir", rl_done_c:"Kapak indirildi ✓", rl_sample:"عنوان الفيديو هنا", rl_words:(n,mx)=>`Kelime: ${n} (en fazla ${mx})`, cv_vid_total:(n,s)=>`Toplam: ${s}s (${n} son dakika)`,
         cv_vid_replay:"Tekrar", cv_vid_trim:"Kırp (süre)", cv_vid_audio:"Ses", cv_vid_mode:"Mod", cv_vid_mix:"Karıştır", cv_vid_replace:"Değiştir", cv_vid_music:"Müzik", cv_vid_none:"— (video sesi)", cv_vid_audioerr:"Ses dosyası bulunamadı",
         cv_drop:"Kapak fotoğrafını sürükleyin veya tıklayın",
         cv_drop_ok:"Kapak fotoğrafı hazır ✓",
@@ -694,7 +770,8 @@
         cv_sec_brk:"Breaking text",
         cv_vid_title:"Video (experimental)", cv_vid_choose:"Choose video", cv_vid_size:"Size", cv_vid_motion:"Motion", cv_vid_play:"Play", cv_vid_pause:"Pause", cv_vid_export:"Export video", cv_vid_rec:"Recording…", cv_vid_done:"Video downloaded ✓", cv_vid_unsup:"This browser cannot export video",
         cv_mode_card:"Card", cv_mode_video:"Video",
-        cv_vid_seg:"Breaking", cv_vid_add:"+ Add breaking", cv_vid_seglbl:"Breaking segments", cv_vid_grp_source:"Source", cv_vid_grp_output:"Output", cv_vid_textsize:"Text size", cv_vid_bghint:"Color = red background", cv_src_video:"Video", cv_src_image:"Image", cv_src_color:"Color", cv_vid_choose_img:"Choose image", cv_vid_cropimg:"Crop image", cv_suggest:"Suggest line breaks", cv_seg_imgadd:"Add image", cv_seg_imgchange:"Change image", cv_suggest_hint:"Enter = manual line break", cv_vid_total:(n,s)=>`Total: ${s}s (${n} breaking)`,
+        cv_vid_seg:"Breaking", cv_vid_add:"+ Add breaking", cv_vid_seglbl:"Breaking segments", cv_vid_grp_source:"Source", cv_vid_grp_output:"Output", cv_vid_textsize:"Text size", cv_vid_bghint:"Color = red background", cv_src_video:"Video", cv_src_image:"Image", cv_src_color:"Color", cv_vid_choose_img:"Choose image", cv_vid_cropimg:"Crop image", cv_suggest:"Suggest line breaks", cv_seg_imgadd:"Add image", cv_seg_imgchange:"Change image", cv_suggest_hint:"Enter = manual line break",
+        tab_r:"Reels", rl_mode_video:"Video", rl_mode_cover:"Cover", rl_title:"Title", rl_loc:"Location badge", rl_dur:"Title time", rl_clip:"Duration", rl_export_v:"Export video", rl_export_c:"Export cover", rl_done_c:"Cover downloaded ✓", rl_sample:"عنوان الفيديو هنا", rl_words:(n,mx)=>`Words: ${n} (max ${mx})`, cv_vid_total:(n,s)=>`Total: ${s}s (${n} breaking)`,
         cv_vid_replay:"Replay", cv_vid_trim:"Trim", cv_vid_audio:"Audio", cv_vid_mode:"Mode", cv_vid_mix:"Mix", cv_vid_replace:"Replace", cv_vid_music:"Music", cv_vid_none:"— (video audio)", cv_vid_audioerr:"Audio file not found",
         cv_drop:"Drag a cover photo, or click",
         cv_drop_ok:"Cover photo ready ✓",
@@ -739,7 +816,21 @@
       g('opt1080').textContent = "1080 x 1080 (" + t('d_sq') + ")";
       g('opt1350').textContent = "1080 x 1350 (" + t('d_v')  + ")";
       g('opt978').textContent  = "978 x 548 ("   + t('d_h')  + ")";
-      g('tabW').textContent = t('tab_w'); g('tabC').textContent = t('tab_c'); g('tabB').textContent = t('tab_b');
+      g('tabW').textContent = t('tab_w'); g('tabC').textContent = t('tab_c'); g('tabB').textContent = t('tab_b'); g('tabR').textContent = t('tab_r');
+      if (document.getElementById('rlTitle')){
+        g('rlModeVideo').textContent = t('rl_mode_video'); g('rlModeCover').textContent = t('rl_mode_cover');
+        g('rlSecSource').textContent = t('cv_vid_grp_source'); g('rlSecText').textContent = t('cv_sec_text'); g('rlSecOut').textContent = t('cv_vid_grp_output'); g('rlSecAudio').textContent = t('cv_vid_audio');
+        g('rlSrcVideo').textContent = t('cv_src_video'); g('rlSrcImage').textContent = t('cv_src_image');
+        g('rlLblTitle').textContent = t('rl_title'); g('rlLblLoc').textContent = t('rl_loc');
+        g('rlLblTextSize').textContent = t('cv_vid_textsize'); g('rlLblSize').textContent = t('cv_vid_size');
+        g('rlLblDur').textContent = t('rl_dur'); g('rlLblClip').textContent = t('rl_clip'); g('rlLblMotion').textContent = t('cv_vid_motion');
+        g('rlLblMode').textContent = t('cv_vid_mode'); g('rlLblVol').textContent = t('cv_vid_music');
+        g('rlSuggest').textContent = t('cv_suggest'); g('rlCropBtn').textContent = t('cv_vid_cropimg');
+        g('rlAudioMode').options[0].text = t('cv_vid_mix'); g('rlAudioMode').options[1].text = t('cv_vid_replace');
+        g('rlPlay').textContent = t('cv_vid_play'); g('rlReplay').textContent = t('cv_vid_replay');
+        if (typeof rlPopulateAudio === 'function') rlPopulateAudio();
+        if (typeof rlApplyMode === 'function') rlApplyMode();
+      }
       g('cvImportBtn').textContent = t('import');
       g('cvImportBtn').title = inPhotopea ? t('import_title') : t('import_title_off');
       if (!cvState.img) g('cvDrop').textContent = t('cv_drop');
@@ -1425,9 +1516,13 @@
         const cover = (which === 'c' || which === 'b');
         document.getElementById('tab-watermark').hidden = (which !== 'w');
         document.getElementById('tab-cover').hidden = !cover;
+        document.getElementById('tab-reels').hidden = (which !== 'r');
         tabW.classList.toggle('active', which === 'w');
         tabC.classList.toggle('active', which === 'c');
         tabB.classList.toggle('active', which === 'b');
+        document.getElementById('tabR').classList.toggle('active', which === 'r');
+        if (which !== 'r' && typeof rlStop === 'function') rlStop();
+        if (which === 'r' && typeof rlPreview === 'function') rlPreview();
         if (which === 'c'){
             cvState.style = cvLastCardStyle;
             document.getElementById('cvStylesRow').hidden = false;
@@ -1481,6 +1576,7 @@
     tabW.addEventListener('click', () => showTab('w'));
     tabC.addEventListener('click', () => showTab('c'));
     tabB.addEventListener('click', () => showTab('b'));
+    document.getElementById('tabR').addEventListener('click', () => showTab('r'));
 
     let cvFontsReady = false;
     function cvEnsureFontsThenRender(){
@@ -1571,7 +1667,8 @@
     function openCvCrop(target, ref){
         cvCropTarget = target; cvCropSegRef = ref || null;
         let url;
-        if (target === 'vidseg'){ url = ref && ref.imgURL; const s2 = cvVidSizeObj(); cvCropRatioVal = s2.W / s2.H; }
+        if (target === 'reel'){ url = rlState.imgURL; const s3 = rlSizeObj(); cvCropRatioVal = s3.W / s3.H; }
+        else if (target === 'vidseg'){ url = ref && ref.imgURL; const s2 = cvVidSizeObj(); cvCropRatioVal = s2.W / s2.H; }
         else if (target === 'vid'){ url = cvVidImgURL; const s = cvVidSizeObj(); cvCropRatioVal = s.W / s.H; }
         else { url = cvState.imgURL; cvCropRatioVal = (target === 'sq') ? 1 : (1080 / 1440); }
         if (!url) return;
@@ -1600,7 +1697,8 @@
         const rx = cvCropImg.naturalWidth / cviW, ry = cvCropImg.naturalHeight / cviH;
         const crop = { sx: cvbL * rx, sy: cvbT * ry, sw: cvbW * rx, sh: cvbH * ry };
         cvCropModal.style.display = 'none';
-        if (cvCropTarget === 'vidseg'){ if (cvCropSegRef) cvCropSegRef.crop = crop; if (typeof cvVidPreviewStatic === 'function') cvVidPreviewStatic(); }
+        if (cvCropTarget === 'reel'){ rlState.crop = crop; if (typeof rlPreview === 'function') rlPreview(); }
+        else if (cvCropTarget === 'vidseg'){ if (cvCropSegRef) cvCropSegRef.crop = crop; if (typeof cvVidPreviewStatic === 'function') cvVidPreviewStatic(); }
         else if (cvCropTarget === 'vid'){ cvVidImgCrop = crop; if (typeof cvVidPreviewStatic === 'function') cvVidPreviewStatic(); }
         else { cvState.crop[cvCropTarget] = crop; cvRenderAll(); }
     });
@@ -2223,6 +2321,260 @@
     }
     document.getElementById('cvVidExport').addEventListener('click', cvVidExport);
     cvRenderSegs();
+
+    /* ================= REELS tab (normal videos + cover) ================= */
+    const rlVideoEl = document.getElementById('rlVideoEl');
+    const rlCanvas = document.getElementById('rlCanvas');
+    const rlCtx = rlCanvas.getContext('2d');
+    const rlTitleEl = document.getElementById('rlTitle');
+    const rlLocEl = document.getElementById('rlLoc');
+    const RL_BLUE = '#1D5FC4';
+    const rlState = { mode:'video', src:'video', img:null, imgURL:null, crop:null, loaded:false, dur:0, playing:false, raf:0, clock:0, audioCtx:null, audioSrc:null };
+
+    function rlStatus(m){ const e = document.getElementById('rlStatus'); if (e) e.textContent = m || ''; }
+    function rlMul(){ return (parseInt(document.getElementById('rlTextSize').value, 10) || 100) / 100; }
+    function rlMaxWords(){ return rlState.mode === 'cover' ? 4 : 7; }
+    function rlSizeObj(){
+        const v = document.getElementById('rlSize').value;
+        if (v === 'sq') return { W:1080, H:1080 };
+        if (v === 'fe') return { W:1080, H:1350 };
+        return { W:1080, H:1920 };
+    }
+    function rlTitleDur(){ return parseInt(document.getElementById('rlTitleDur').value, 10) || 5; }
+    function rlClipDur(){ return parseInt(document.getElementById('rlClipDur').value, 10) || 10; }
+    function rlTotalDur(){
+        if (rlState.mode === 'cover') return 0;
+        if (rlState.src === 'video' && rlState.loaded) return Math.max(1, rlState.dur);
+        return rlClipDur();
+    }
+    function rlHasVideo(){ return rlState.src === 'video' && rlState.loaded && rlVideoEl.videoWidth > 0; }
+    function rlStop(){ rlState.playing = false; cancelAnimationFrame(rlState.raf); try { rlVideoEl.pause(); } catch (e) {} const b = document.getElementById('rlPlay'); if (b) b.textContent = t('cv_vid_play'); }
+
+    function rlUpdateWords(){
+        const el = document.getElementById('rlWords'); if (!el) return;
+        const n = cvParseTokens(rlTitleEl.value).filter(x => !x.br).length;
+        const mx = rlMaxWords();
+        el.textContent = t('rl_words')(n, mx);
+        el.style.color = (n > 0 && n <= mx) ? '#059669' : '#d97706';
+    }
+
+    function rlDrawBg(ctx, W, H){
+        if (rlHasVideo()){
+            const vw = rlVideoEl.videoWidth, vh = rlVideoEl.videoHeight, ir = vw / vh, tr = W / H;
+            let sw, sh, sx, sy;
+            if (ir > tr){ sh = vh; sw = sh * tr; sx = (vw - sw) / 2; sy = 0; } else { sw = vw; sh = sw / tr; sx = 0; sy = (vh - sh) / 2; }
+            ctx.drawImage(rlVideoEl, sx, sy, sw, sh, 0, 0, W, H); return;
+        }
+        if (rlState.img){
+            let sx, sy, sw, sh;
+            if (rlState.crop){ sx = rlState.crop.sx; sy = rlState.crop.sy; sw = rlState.crop.sw; sh = rlState.crop.sh; }
+            else { const ir = rlState.img.width / rlState.img.height, tr = W / H; if (ir > tr){ sh = rlState.img.height; sw = sh * tr; sx = (rlState.img.width - sw) / 2; sy = 0; } else { sw = rlState.img.width; sh = sw / tr; sx = 0; sy = (rlState.img.height - sh) / 2; } }
+            ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+            ctx.drawImage(rlState.img, sx, sy, sw, sh, 0, 0, W, H); return;
+        }
+        ctx.fillStyle = '#111'; ctx.fillRect(0, 0, W, H);
+    }
+    function rlBadge(ctx, W, text, alpha){
+        if (!text) return;
+        const fs = 36, padX = 22, bh = 58, r = 8, mx = 60, my = 60;
+        ctx.save(); ctx.globalAlpha = alpha;
+        ctx.font = '700 ' + fs + 'px HNArabic';
+        const tw = ctx.measureText(text).width, w = tw + padX * 2, x = W - mx - w, y = my;
+        const prev = cvCtx; cvCtx = ctx; cvRoundRect(x, y, w, bh, r); cvCtx = prev;
+        ctx.fillStyle = RL_BLUE; ctx.fill();
+        ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.direction = 'rtl'; ctx.textBaseline = 'middle';
+        ctx.fillText(text, x + w / 2, y + bh / 2 + 2);
+        ctx.restore();
+    }
+    function rlDrawTitle(ctx, W, H, alpha){
+        const txt = (rlTitleEl.value || '').trim() || t('rl_sample');
+        if (alpha <= 0.01) return;
+        const prev = cvCtx, pw = CVW, ph = CVH; cvCtx = ctx; CVW = W; CVH = H;
+        try {
+            const mul = rlMul();
+            const toks = cvParseTokens(txt);
+            const f = cvWrapTokens(toks, W - 150, Math.round(76 * mul), Math.round(40 * mul), true, 4);
+            const nL = Math.max(f.lines.length, 1);
+            const lastBaseline = Math.round(H * 0.66);
+            const firstY = lastBaseline - (nL - 1) * f.lh;
+            ctx.save(); ctx.globalAlpha = alpha;
+            ctx.shadowColor = 'rgba(0,0,0,.55)'; ctx.shadowBlur = 20; ctx.shadowOffsetY = 2;
+            f.lines.forEach((ln, i) => cvDrawLineRightEdge(ln, W - 70, firstY + i * f.lh, f.fs, true));
+            ctx.restore();
+        } finally { cvCtx = prev; CVW = pw; CVH = ph; }
+    }
+    function rlDrawAt(ctx, W, H, T){
+        rlDrawBg(ctx, W, H);
+        const motion = document.getElementById('rlMotion').checked;
+        const dur = rlTitleDur();
+        let a = 1, ba = 1;
+        if (rlState.mode !== 'cover'){
+            if (motion){
+                if (T < 0.45) a = T / 0.45;
+                else if (T > dur - 0.5 && T < dur) a = Math.max(0, (dur - T) / 0.5);
+                else if (T >= dur) a = 0;
+                ba = Math.max(0, Math.min(1, (T - 0.25) / 0.45));
+            } else { a = (T < dur) ? 1 : 0; }
+        }
+        rlDrawTitle(ctx, W, H, a);
+        rlBadge(ctx, W, (rlLocEl.value || '').trim(), ba);
+        if (cvLogo.complete && cvLogo.naturalWidth) ctx.drawImage(cvLogo, 51, H - 51 - 63, 63, 63);
+    }
+    function rlPreview(){ const s = rlSizeObj(); if (rlCanvas.width !== s.W || rlCanvas.height !== s.H){ rlCanvas.width = s.W; rlCanvas.height = s.H; } rlDrawAt(rlCtx, rlCanvas.width, rlCanvas.height, rlState.mode === 'cover' ? 0 : 1.2); }
+    function rlLoop(){
+        if (!rlState.playing) return;
+        const total = Math.max(1, rlTotalDur());
+        let T = (performance.now() - rlState.clock) / 1000;
+        if (T >= total){ rlState.clock = performance.now(); T = 0; if (rlHasVideo()) rlVideoEl.currentTime = 0; }
+        rlDrawAt(rlCtx, rlCanvas.width, rlCanvas.height, T);
+        rlState.raf = requestAnimationFrame(rlLoop);
+    }
+
+    function rlApplyMode(){
+        const cover = rlState.mode === 'cover';
+        document.getElementById('rlModeVideo').classList.toggle('active', !cover);
+        document.getElementById('rlModeCover').classList.toggle('active', cover);
+        document.getElementById('rlAudioSec').hidden = cover;
+        document.getElementById('rlPlayRow').hidden = cover;
+        document.getElementById('rlTitleDurRow').hidden = cover;
+        document.getElementById('rlMotionRow').hidden = cover;
+        document.getElementById('rlClipRow').hidden = cover || rlState.src === 'video';
+        document.getElementById('rlSrcVideo').hidden = cover;
+        const sel = document.getElementById('rlSize'), cur = sel.value;
+        sel.innerHTML = '';
+        const opts = cover ? [['fe','Feed · 1080×1350'],['sq','X · 1080×1080'],['reel','Story · 1080×1920']]
+                           : [['reel','Reels/Stories · 1080×1920'],['sq','X · 1080×1080'],['fe','Feed · 1080×1350']];
+        opts.forEach(o => { const el = document.createElement('option'); el.value = o[0]; el.textContent = o[1]; sel.appendChild(el); });
+        if (opts.some(o => o[0] === cur)) sel.value = cur;
+        if (cover) rlSetSource('image');
+        document.getElementById('rlExport').textContent = cover ? t('rl_export_c') : t('rl_export_v');
+        rlStop(); rlUpdateWords(); rlPreview();
+    }
+    function rlSetSource(src){
+        rlState.src = src;
+        document.getElementById('rlSrcVideo').classList.toggle('active', src === 'video');
+        document.getElementById('rlSrcImage').classList.toggle('active', src === 'image');
+        document.getElementById('rlChoose').textContent = (src === 'image') ? t('cv_vid_choose_img') : t('cv_vid_choose');
+        document.getElementById('rlCropBtn').hidden = !(src === 'image' && rlState.img);
+        document.getElementById('rlClipRow').hidden = (rlState.mode === 'cover') || src === 'video';
+        rlStop(); rlPreview();
+    }
+    document.getElementById('rlModeVideo').addEventListener('click', () => { rlState.mode = 'video'; rlApplyMode(); });
+    document.getElementById('rlModeCover').addEventListener('click', () => { rlState.mode = 'cover'; rlApplyMode(); });
+    document.getElementById('rlSrcVideo').addEventListener('click', () => rlSetSource('video'));
+    document.getElementById('rlSrcImage').addEventListener('click', () => rlSetSource('image'));
+    document.getElementById('rlChoose').addEventListener('click', () => { if (rlState.src === 'image') document.getElementById('rlImgInput').click(); else document.getElementById('rlVidInput').click(); });
+    document.getElementById('rlCropBtn').addEventListener('click', () => { if (rlState.img) openCvCrop('reel'); });
+    document.getElementById('rlImgInput').addEventListener('change', e => {
+        const f = e.target.files[0]; if (!f) return;
+        if (rlState.imgURL){ try { URL.revokeObjectURL(rlState.imgURL); } catch (er) {} }
+        rlState.imgURL = URL.createObjectURL(f);
+        const im = new Image();
+        im.onload = () => { rlState.img = im; rlState.crop = null; document.getElementById('rlName').textContent = f.name; document.getElementById('rlCropBtn').hidden = false; rlPreview(); };
+        im.src = rlState.imgURL;
+    });
+    document.getElementById('rlVidInput').addEventListener('change', e => {
+        const f = e.target.files[0]; if (!f) return;
+        if (rlVideoEl.src){ try { URL.revokeObjectURL(rlVideoEl.src); } catch (er) {} }
+        rlVideoEl.src = URL.createObjectURL(f); rlVideoEl.load();
+        rlVideoEl.onloadedmetadata = () => { rlState.loaded = true; rlState.dur = rlVideoEl.duration || 0; document.getElementById('rlName').textContent = f.name; rlVideoEl.currentTime = 0; rlVideoEl.onseeked = () => { rlPreview(); rlVideoEl.onseeked = null; }; };
+    });
+    rlTitleEl.addEventListener('input', () => { rlUpdateWords(); rlPreview(); });
+    rlLocEl.addEventListener('input', rlPreview);
+    document.getElementById('rlTextSize').addEventListener('input', e => { document.getElementById('rlTextVal').textContent = e.target.value + '%'; rlPreview(); });
+    document.getElementById('rlTitleDur').addEventListener('input', e => { document.getElementById('rlDurVal').textContent = e.target.value + 's'; });
+    document.getElementById('rlClipDur').addEventListener('input', e => { document.getElementById('rlClipVal').textContent = e.target.value + 's'; });
+    document.getElementById('rlSize').addEventListener('change', rlPreview);
+    document.getElementById('rlMotion').addEventListener('change', rlPreview);
+    document.getElementById('rlVol').addEventListener('input', e => { document.getElementById('rlVolVal').textContent = e.target.value + '%'; });
+    document.getElementById('rlSuggest').addEventListener('click', () => {
+        const raw = rlTitleEl.value.replace(/\n+/g, ' ').trim(); if (!raw) return;
+        const s = rlSizeObj();
+        cvCtx = rlCtx; CVW = s.W; CVH = s.H;
+        const f = cvWrapTokens(cvParseTokens(raw).filter(x => !x.br), s.W - 150, Math.round(76 * rlMul()), Math.round(40 * rlMul()), true, 4);
+        rlTitleEl.value = f.lines.map(ln => ln.map(x => (x.accent ? '_' : '') + x.text + (x.accent ? '_' : '')).join(' ')).join('\n');
+        rlUpdateWords(); rlPreview();
+    });
+    function rlStartPlay(){
+        rlState.clock = performance.now();
+        if (rlHasVideo()){ rlVideoEl.muted = true; rlVideoEl.currentTime = 0; rlVideoEl.play().catch(() => {}); }
+        rlState.playing = true; document.getElementById('rlPlay').textContent = t('cv_vid_pause'); rlLoop();
+    }
+    document.getElementById('rlPlay').addEventListener('click', () => { if (rlState.playing) rlStop(); else rlStartPlay(); });
+    document.getElementById('rlReplay').addEventListener('click', () => { rlState.clock = performance.now(); if (rlHasVideo()) rlVideoEl.currentTime = 0; if (!rlState.playing) rlStartPlay(); });
+
+    async function rlExport(){
+        const s = rlSizeObj();
+        if (rlState.mode === 'cover'){
+            const off = document.createElement('canvas'); off.width = s.W; off.height = s.H;
+            rlDrawAt(off.getContext('2d'), s.W, s.H, 0);
+            off.toBlob(b => { downloadBlob(b, 'AA-Cover-' + Date.now() + '.png'); rlStatus(t('rl_done_c')); }, 'image/png', 0.95);
+            return;
+        }
+        if (!rlCanvas.captureStream || !window.MediaRecorder){ rlStatus(t('cv_vid_unsup')); return; }
+        rlStop();
+        const total = Math.max(1, rlTotalDur());
+        const off = document.createElement('canvas'); off.width = s.W; off.height = s.H;
+        const octx = off.getContext('2d');
+        const vstream = off.captureStream(30);
+        const musicFile = document.getElementById('rlAudio').value;
+        const mode = document.getElementById('rlAudioMode').value;
+        const vol = (parseInt(document.getElementById('rlVol').value, 10) || 0) / 100;
+        let audioTracks = [];
+        try {
+            const needVid = rlHasVideo();
+            if ((needVid || musicFile) && !rlState.audioCtx) rlState.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (needVid && rlState.audioCtx && !rlState.audioSrc) rlState.audioSrc = rlState.audioCtx.createMediaElementSource(rlVideoEl);
+            const ac = rlState.audioCtx;
+            if (ac){
+                if (ac.state === 'suspended') await ac.resume();
+                const dest = ac.createMediaStreamDestination();
+                if (needVid && rlState.audioSrc){ const g = ac.createGain(); try { rlState.audioSrc.disconnect(); } catch (e) {} rlState.audioSrc.connect(g); g.connect(dest); g.gain.value = (musicFile && mode === 'replace') ? 0 : 1; }
+                if (musicFile){
+                    let buf; try { buf = await cvLoadAudioBuffer(musicFile, ac); } catch (err) { rlStatus(t('cv_vid_audioerr')); return; }
+                    const n = ac.createBufferSource(); n.buffer = buf; n.loop = true; const g = ac.createGain(); n.connect(g); g.connect(dest);
+                    const st = ac.currentTime + 0.06;
+                    g.gain.setValueAtTime(vol, st); g.gain.setValueAtTime(vol, st + Math.max(0, total - 0.6)); g.gain.linearRampToValueAtTime(0.0001, st + total);
+                    n.start(st); n.stop(st + total + 0.05);
+                }
+                audioTracks = dest.stream.getAudioTracks();
+            }
+        } catch (e) { audioTracks = []; }
+        const combined = new MediaStream([...vstream.getVideoTracks(), ...audioTracks]);
+        const mime = ['video/mp4;codecs=avc1.42E01E,mp4a.40.2','video/mp4','video/webm;codecs=vp9,opus','video/webm'].find(m => { try { return MediaRecorder.isTypeSupported(m); } catch (e) { return false; } }) || '';
+        let rec; try { rec = new MediaRecorder(combined, mime ? { mimeType: mime, videoBitsPerSecond: 9000000 } : {}); } catch (e) { rlStatus(t('cv_vid_unsup')); return; }
+        const chunks = [];
+        rec.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
+        rec.onstop = () => {
+            const type = rec.mimeType || mime || 'video/webm';
+            const ext = type.indexOf('mp4') >= 0 ? 'mp4' : 'webm';
+            downloadBlob(new Blob(chunks, { type }), 'AA-Reel-' + Date.now() + '.' + ext);
+            rlStatus(t('cv_vid_done')); document.getElementById('rlExport').disabled = false;
+        };
+        document.getElementById('rlExport').disabled = true;
+        rlStatus(t('cv_vid_rec'));
+        const clock = performance.now();
+        if (rlHasVideo()){ rlVideoEl.muted = false; rlVideoEl.currentTime = 0; try { await rlVideoEl.play(); } catch (e) {} }
+        rec.start();
+        const step = () => {
+            const T = (performance.now() - clock) / 1000;
+            if (rlHasVideo() && rlVideoEl.currentTime >= (rlVideoEl.duration || total) - 0.05) rlVideoEl.currentTime = 0;
+            octx.clearRect(0, 0, s.W, s.H);
+            rlDrawAt(octx, s.W, s.H, Math.min(T, total));
+            rlStatus(t('cv_vid_rec') + ' ' + Math.min(100, Math.round(T / total * 100)) + '%');
+            if (T >= total){ try { rec.stop(); } catch (e) {} try { rlVideoEl.pause(); } catch (e) {} return; }
+            requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+    }
+    document.getElementById('rlExport').addEventListener('click', rlExport);
+    function rlPopulateAudio(){
+        const sel = document.getElementById('rlAudio'); if (!sel) return;
+        sel.innerHTML = '';
+        const none = document.createElement('option'); none.value = ''; none.textContent = t('cv_vid_none'); sel.appendChild(none);
+        AUDIO_TRACKS.forEach(a => { const o = document.createElement('option'); o.value = a.file; o.textContent = a.label; sel.appendChild(o); });
+    }
+    rlPopulateAudio(); rlApplyMode();
 
     ensureLogos();
     applyLang();
